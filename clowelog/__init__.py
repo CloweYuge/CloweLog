@@ -78,7 +78,7 @@ def register_commands(app):
     @click.option('--post', default=50, help='Quantity of posts, default is 50.')
     @click.option('--comment', default=500, help='Quantity of comments, default is 500.')
     def forge(category, post, comment):
-        """Generate fake data."""
+        """配置网站虚拟数据，和管理员账户，默认admin-root，密码helloflask"""
         from clowelog.fakes import fake_admin, fake_categories, fake_posts, fake_comments
 
         db.drop_all()
@@ -104,7 +104,7 @@ def register_commands(app):
     @click.option('--password', prompt=True, hide_input=True,
                   confirmation_prompt=True, help='The password used to login.')
     def init(username, password):
-        """Building clowelog, just for you."""
+        """只生成管理员账号(--username 登录名，--password 密码)，并添加默认分类，入已存在管理账号将会更新已存在的。"""
 
         click.echo('Initializing the database...')
         db.create_all()
@@ -118,7 +118,7 @@ def register_commands(app):
             click.echo('Creating the temporary administrator account...')
             admin = Admin(
                 username=username,
-                blog_title='clowelog',
+                blog_title='Clowelog',
                 blog_sub_title="No, I'm the real thing.",
                 name='Admin',
                 about='Anything about you.'
@@ -129,8 +129,8 @@ def register_commands(app):
         category = Category.query.first()
         if category is None:
             click.echo('生成默认分类（Creating the default category...）')
-            category = Category(name='Default')
+            category = Category(name='默认')
             db.session.add(category)
 
         db.session.commit()
-        click.echo('Done.')
+        click.echo('完成Done.')

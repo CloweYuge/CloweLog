@@ -8,10 +8,10 @@ fake = Faker()
 
 def fake_admin():
     admin = Admin(
-        username='admin',
-        blog_title='Bluelog',
-        blog_sub_title="No,I'm the real thing.",
-        name='Dawei',
+        username='admin-root',
+        blog_title='CloweLog',
+        blog_sub_title="欢迎来到clowe的博文站。",
+        name='Clowe',
         about='Um, l, you ,love me'
     )
     admin.set_password('helloflask')
@@ -19,7 +19,7 @@ def fake_admin():
     db.session.commit()
 
 def fake_categories(count=10):
-    category = Category(name='Default')
+    category = Category(name='默认')
     db.session.add(category)
 
     for i in range(count):

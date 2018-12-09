@@ -35,7 +35,7 @@ class PostForm(FlaskForm):
 
 
 class CategoryForm(FlaskForm):
-    name = StringField('类别(Name)', validators=[DataRequired(), Length(1, 30)])
+    name = StringField('分类名称(Name)', validators=[DataRequired(), Length(1, 30)])
     submit = SubmitField()
 
     def validate_name(self, field):

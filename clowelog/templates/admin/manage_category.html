@@ -5,10 +5,10 @@
 
 {% block content %}
     <div class="page-header">
-        <h1>Categories
+        <h1>分类列表
             <small class="text-muted">{{ categories|length }}</small>
             <span class="float-right"><a class="btn btn-primary btn-sm"
-                                         href="{{ url_for('.new_category') }}">New Category</a></span>
+                                         href="{{ url_for('.new_category') }}">添加分类</a></span>
         </h1>
     </div>
     {% if categories %}
@@ -44,9 +44,8 @@
                 </tr>
             {% endfor %}
         </table>
-        <p class="text-muted">Tips: Deleting a category does not delete the article under that category.
-            The articles under this category will be moved to the default category.</p>
+        <p class="text-muted">Tips: 默认分类无法删除，你可以选择添加分类来拓展</p>
     {% else %}
-        <div class="tip"><h5>No categories.</h5></div>
+        <div class="tip"><h5>还没有分类，快去创建一个吧~</h5></div>
     {% endif %}
 {% endblock %}

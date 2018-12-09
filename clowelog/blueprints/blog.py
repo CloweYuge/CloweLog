@@ -73,7 +73,7 @@ def show_post(post_id):
         else:
             flash('Thanks, your comment will be published after reviewed.', 'info')
             send_new_comment_email(post)  # send notification email to admin
-        return redirect(url_for('.show_post', post_id=post_id))
+        return redirect(url_for('.show_post', post_id=post_id) + '#comments')
     return render_template('blog/post.html', post=post, pagination=pagination, form=form, comments=comments)
 
 
@@ -81,7 +81,7 @@ def show_post(post_id):
 def reply_comment(comment_id):
     comment = Comment.query.get_or_404(comment_id)
     return redirect(url_for('.show_post',
-                            post_id=comment.photo_id, reply=comment_id, author=comment.author) + '#comment-form')
+                            post_id=comment.post_id, reply=comment_id, author=comment.author) + '#comment-form')
 
 
 @blog_bp.route('/change-theme/<theme_name>')
