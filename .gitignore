@@ -74,7 +74,7 @@ target/
 
 # pyenv
 .python-version
-.gitignore
+.flaskenv
 
 # celery beat schedule file
 celerybeat-schedule
