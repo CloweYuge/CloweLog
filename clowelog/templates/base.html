@@ -8,7 +8,7 @@
         <title>{% block title %}{% endblock title %} - {{ admin.blog_title|default('Blog Title') }}</title>
         <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
         <link rel="stylesheet"
-              href="{{ url_for('static', filename='css/%s.min.css' % request.cookies.get('theme', 'perfect_blue')) }}"
+              href="{{ url_for('static', filename='css/%s.min.css' % request.cookies.get('theme', 'black_swan')) }}"
               type="text/css">
         <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" type="text/css">
     {% endblock head %}
@@ -46,7 +46,7 @@
                             <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button"
                                aria-haspopup="true"
                                aria-expanded="false">
-                                消息 <span class="caret"></span>
+                                管理 <span class="caret"></span>
                                 {% if unread_comments %}
                                     <span class="badge badge-success">new</span>
                                 {% endif %}
@@ -105,6 +105,7 @@
     <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/script.js') }}"></script>
     {{ moment.include_moment(local_js=url_for('static', filename='js/moment-with-locales.min.js')) }}
+    {{ moment.locale(auto_detect=True) }}
 {% endblock %}
 </body>
 </html>

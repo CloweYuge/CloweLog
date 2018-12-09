@@ -24,7 +24,7 @@ def settings():
         current_user.blog_sub_title = form.blog_sub_title.data
         current_user.about = form.about.data
         db.session.commit()
-        flash('Setting updated.', 'success')
+        flash('设置已更新~', 'success')
         return redirect(url_for('blog.index'))
     form.name.data = current_user.name
     form.blog_title.data = current_user.blog_title
@@ -55,7 +55,7 @@ def new_post():
         # post = Post(title=title, body=body, category_id=category_id)
         db.session.add(post)
         db.session.commit()
-        flash('Post created.', 'success')
+        flash('文章已发布', 'success')
         return redirect(url_for('blog.show_post', post_id=post.id))
     return render_template('admin/new_post.html', form=form)
 
@@ -69,7 +69,7 @@ def edit_post(post_id):
         post.body = form.body.data
         post.category = Category.query.get(form.category.data)
         db.session.commit()
-        flash('Post updated.', 'success')
+        flash('文章修改成功~', 'success')
         return redirect(url_for('blog.show_post', post_id=post.id))
     form.title.data = post.title
     form.body.data = post.body
@@ -82,7 +82,7 @@ def delete_post(post_id):
     post = Post.query.get_or_404(post_id)
     db.session.delete(post)
     db.session.commit()
-    flash('Post deleted.', 'success')
+    flash('文章已删除！', 'success')
     return redirect_back()
 
 
@@ -91,10 +91,10 @@ def set_comment(post_id):
     post = Post.query.get_or_404(post_id)
     if post.can_comment:
         post.can_comment = False
-        flash('Comment disabled.', 'success')
+        flash('评论已禁止', 'success')
     else:
         post.can_comment = True
-        flash('Comment enabled.', 'success')
+        flash('评论已开放', 'success')
     db.session.commit()
     return redirect_back()
 
@@ -104,7 +104,7 @@ def approve_comment(comment_id):
     comment = Comment.query.get_or_404(comment_id)
     comment.reviewed = True
     db.session.commit()
-    flash('Comment published.', 'success')
+    flash('评论已允许', 'success')
     return redirect_back()
 
 
@@ -130,7 +130,7 @@ def delete_comment(comment_id):
     comment = Comment.query.get_or_404(comment_id)
     db.session.delete(comment)
     db.session.commit()
-    flash('Comment deleted.', 'success')
+    flash('评论已删除', 'success')
     return redirect_back()
 
 
@@ -138,10 +138,10 @@ def delete_comment(comment_id):
 def delete_category(category_id):
     category = Category.query.get_or_404(category_id)
     if category.id == 1:
-        flash('You can not delete the default category.', 'warning')
+        flash('你不能删除掉默认的分类', 'warning')
         return redirect(url_for('blog.index'))
     category.delete()
-    flash('Category deleted.', 'success')
+    flash('分类已删除，包括该分类下的所有文章！', 'success')
     return redirect(url_for('.manage_category'))
 
 
@@ -153,7 +153,7 @@ def new_category():
         category = Category(name=name)
         db.session.add(category)
         db.session.commit()
-        flash('Category created.', 'success')
+        flash('分类已创建', 'success')
         return redirect(url_for('.manage_category'))
     return render_template('admin/new_category.html', form=form)
 
@@ -169,12 +169,12 @@ def edit_category(category_id):
     form = CategoryForm()
     category = Category.query.get_or_404(category_id)
     if category.id == 1:
-        flash('You can not edit the default category.', 'warning')
+        flash('你不能修改默认分类的名称', 'warning')
         return redirect(url_for('blog.index'))
     if form.validate_on_submit():
         category.name = form.name.data
         db.session.commit()
-        flash('Category updated.', 'success')
+        flash('分类名称已更新！', 'success')
         return redirect(url_for('.manage_category'))
 
     form.name.data = category.name
