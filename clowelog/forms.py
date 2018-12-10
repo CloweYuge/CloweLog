@@ -14,6 +14,13 @@ class LoginForm(FlaskForm):         # 登录表单
     submit = SubmitField('登入(Log in)')
 
 
+class JoinForm(FlaskForm):
+    username = StringField('用户名(将用于登录)', validators=[DataRequired(), Length(1, 20)])
+    password = PasswordField('密码(设置至少8位以上)', validators=[DataRequired(), Length(8, 128)])
+    name = StringField('昵称', validators=[DataRequired(), Length(1, 20)])
+    email = StringField('邮箱(用于密码找回)', validators=[DataRequired(), Email(), Length(1, 254)])
+    submit = SubmitField('提交')
+
 class SettingForm(FlaskForm):       # 设置表单
     name = StringField('昵称', validators=[DataRequired(), Length(1, 60)])
     blog_title = StringField('博客标题', validators=[DataRequired(), Length(1, 60)])
@@ -44,14 +51,14 @@ class CategoryForm(FlaskForm):          # 分类表单
 
 
 class CommentForm(FlaskForm):           # 评论表单
-    author = StringField('昵称', validators=[DataRequired(), Length(1, 30)])
-    email = StringField('邮箱', validators=[DataRequired(), Email(), Length(1, 254)])
-    site = StringField('主页', validators=[Optional(), URL, Length(0, 255)])
+    # author = StringField('昵称', validators=[DataRequired(), Length(1, 30)])
+    # email = StringField('邮箱', validators=[DataRequired(), Email(), Length(1, 254)])
+    # site = StringField('主页', validators=[Optional(), URL, Length(0, 255)])
     body = TextAreaField('你想说的', validators=[DataRequired()])
     submit = SubmitField('提交')
 
 
-class AdminCommentForm(CommentForm):        # 未登录评论表单
+class AdminCommentForm(CommentForm):        # 登录评论表单
     author = HiddenField()
     email = HiddenField()
     site = HiddenField()

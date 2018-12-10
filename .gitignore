@@ -75,6 +75,7 @@ target/
 # pyenv
 .python-version
 .flaskenv
+data-dev.db
 
 # celery beat schedule file
 celerybeat-schedule

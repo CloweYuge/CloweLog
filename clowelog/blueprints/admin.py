@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, current_app, flash, redirect, url_for
 from flask_login import login_required, current_user
-from clowelog.models import Post, Category, Comment, Link
+from clowelog.models import Post, Category, Comment, Link, Admin, User
 from clowelog.forms import PostForm, CategoryForm, LinkForm, SettingForm
 from clowelog.extensions import db
 from clowelog.utils import redirect_back
@@ -18,6 +18,7 @@ def login_protect():
 @admin_bp.route('/settings', methods=['GET', 'POST'])
 def settings():
     form = SettingForm()
+    admin = Admin.query.with_parent(User.query.get(current_user.id)).one()
     if form.validate_on_submit():
         current_user.name = form.name.data
         current_user.blog_title = form.blog_title.data
@@ -27,16 +28,20 @@ def settings():
         flash('设置已更新~', 'success')
         return redirect(url_for('blog.index'))
     form.name.data = current_user.name
-    form.blog_title.data = current_user.blog_title
-    form.blog_sub_title.data = current_user.blog_sub_title
-    form.about.data = current_user.about
+    form.blog_title.data = admin.blog_title
+    form.blog_sub_title.data = admin.blog_sub_title
+    form.about.data = admin.about
     return render_template('admin/settings.html', form=form)
 
 
 @admin_bp.route('/post/mange')
 def manage_post():
     page = request.args.get('page', 1, type=int)
-    pagination = Post.query.order_by(
+    admin = User.query.get(current_user.id).admin
+    if admin is None:
+        flash('对不起，您还未能开通博客权限！', 'success')
+        return redirect_back()
+    pagination = Post.query.with_parent(admin).order_by(
         Post.timestamp.desc()).paginate(page, per_page=current_app.config['BLUELOG_MANAGE_POST_PER_PAGE'])
     posts = pagination.items
     return render_template('admin/manage_post.html', pagination=pagination, posts=posts)
@@ -45,11 +50,15 @@ def manage_post():
 @admin_bp.route('/post/new', methods=['GET', 'POST'])
 def new_post():
     form = PostForm()
+    admin = User.query.get(current_user.id).admin
+    if admin is None:
+        flash('对不起，您还未能开通博客权限！', 'success')
+        return redirect_back()
     if form.validate_on_submit():
         title = form.title.data
         body = form.body.data
         category = Category.query.get(form.category.data)
-        post = Post(title=title, body=body, category=category)
+        post = Post(title=title, body=body, category=category, admin=admin)
         # same with:
         # category_id = form.category.data
         # post = Post(title=title, body=body, category_id=category_id)
@@ -110,15 +119,19 @@ def approve_comment(comment_id):
 
 @admin_bp.route('/comment/manage')
 def manage_comment():
+    admin = User.query.get(current_user.id).admin
+    if admin is None:
+        flash('对不起，您还未能开通博客权限！', 'success')
+        return redirect_back()
     filter_rule = request.args.get('filter', 'all')  # 'all', 'unreviewed', 'admin'
     page = request.args.get('page', 1, type=int)
     per_page = current_app.config['BLUELOG_COMMENT_PER_PAGE']
     if filter_rule == 'unread':
-        filtered_comments = Comment.query.filter_by(reviewed=False)
+        filtered_comments = Comment.query.with_parent(admin).filter_by(reviewed=False)
     elif filter_rule == 'admin':
-        filtered_comments = Comment.query.filter_by(from_admin=True)
+        filtered_comments = Comment.query.with_parent(admin).filter_by(from_admin=True)
     else:
-        filtered_comments = Comment.query
+        filtered_comments = Comment.query.with_parent(admin)
 
     pagination = filtered_comments.order_by(Comment.timestamp.desc()).paginate(page, per_page=per_page)
     comments = pagination.items
@@ -147,10 +160,14 @@ def delete_category(category_id):
 
 @admin_bp.route('/category/new', methods=['GET', 'POST'])
 def new_category():
+    admin = User.query.get(current_user.id).admin
+    if admin is None:
+        flash('对不起，您还未能开通博客权限！', 'success')
+        return redirect_back()
     form = CategoryForm()
     if form.validate_on_submit():
         name = form.name.data
-        category = Category(name=name)
+        category = Category(name=name, admin=admin)
         db.session.add(category)
         db.session.commit()
         flash('分类已创建', 'success')
@@ -161,6 +178,10 @@ def new_category():
 @admin_bp.route('/category/manage')
 @login_required
 def manage_category():
+    admin = User.query.get(current_user.id).admin
+    if admin is None:
+        flash('对不起，您还未能开通博客权限！', 'success')
+        return redirect_back()
     return render_template('admin/manage_category.html')
 
 
@@ -183,6 +204,10 @@ def edit_category(category_id):
 
 @admin_bp.route('/link/new', methods=['GET', 'POST'])
 def new_link():
+    admin = User.query.get(current_user.id).admin
+    if admin is None:
+        flash('对不起，您还未能开通博客权限！', 'success')
+        return redirect_back()
     form = LinkForm()
     if form.validate_on_submit():
         name = form.name.data
@@ -197,4 +222,8 @@ def new_link():
 
 @admin_bp.route('/link/manage')
 def manage_link():
+    admin = User.query.get(current_user.id).admin
+    if admin is None:
+        flash('对不起，您还未能开通博客权限！', 'success')
+        return redirect_back()
     return render_template('admin/manage_link.html')

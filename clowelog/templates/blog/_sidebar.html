@@ -13,6 +13,7 @@
 
 {% if categories %}
     <div class="card mb-3">
+
         <div class="card-header">
             <h4>分类
                 <span class="float-right"><a class="btn btn-primary btn-sm"
@@ -20,6 +21,16 @@
             </h4>
         </div>
         <ul class="list-group list-group-flush">
+        {% if categorys %}
+            {% for category in categorys %}
+                <li class="list-group-item  list-group-item-action d-flex justify-content-between align-items-center">
+                    <a href="{{ url_for('blog.show_category', category_id=category.id) }}">
+                        {{ category.name }}
+                    </a>
+                    <span class="badge badge-primary badge-pill"> {{ category.posts|length }}</span>
+                </li>
+            {% endfor %}
+            {% else %}
             {% for category in categories %}
                 <li class="list-group-item  list-group-item-action d-flex justify-content-between align-items-center">
                     <a href="{{ url_for('blog.show_category', category_id=category.id) }}">
@@ -28,6 +39,8 @@
                     <span class="badge badge-primary badge-pill"> {{ category.posts|length }}</span>
                 </li>
             {% endfor %}
+        {% endif %}
+
         </ul>
     </div>
 {% endif %}

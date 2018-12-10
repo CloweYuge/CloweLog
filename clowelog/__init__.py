@@ -7,9 +7,10 @@ from flask_login import current_user
 from clowelog.blueprints.auth import auth_bp
 from clowelog.blueprints.admin import admin_bp
 from clowelog.blueprints.blog import blog_bp
+from clowelog.blueprints.user import user_bp
 from clowelog.extensions import bootstrap, db, moment, ckeditor, mail, login_manager, csrf
 from clowelog.settings import config
-from clowelog.models import Admin, Category, Comment
+from clowelog.models import Admin, Category, Comment, User
 
 
 def create_app(config_name=None):
@@ -45,6 +46,8 @@ def register_blueprint(app):
     app.register_blueprint(blog_bp)
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(user_bp, url_prefix='/user')
+
 
 def register_shell_context(app):
     @app.shell_context_processor
@@ -57,10 +60,19 @@ def register_template_context(app):
         admin = Admin.query.first()
         categories = Category.query.order_by(Category.name).all()
         if current_user.is_authenticated:
-            unread_comments = Comment.query.filter_by(reviewed=False).count()
+            admin_user = User.query.get(current_user.id).admin
+            if admin_user:
+                categorys = admin_user.categorys
+                unread_comments = admin_user.comments.filter_by(reviewed=False).count()
+            else:
+                categorys = None
+                unread_comments = None
         else:
+            admin_user = None
+            categorys = None
             unread_comments = None
-        return dict(unread_comments=unread_comments, admin=admin, categories=categories)
+        return dict(unread_comments=unread_comments, admin=admin, categories=categories,
+                    admin_user=admin_user, categorie_user=categorys)
 
 
 def register_errors(app):
@@ -79,10 +91,13 @@ def register_commands(app):
     @click.option('--comment', default=500, help='Quantity of comments, default is 500.')
     def forge(category, post, comment):
         """配置网站虚拟数据，和管理员账户，默认admin-root，密码helloflask"""
-        from clowelog.fakes import fake_admin, fake_categories, fake_posts, fake_comments
+        from clowelog.fakes import fake_admin, fake_categories, fake_posts, fake_comments, fake_user
 
         db.drop_all()
         db.create_all()
+
+        click.echo('生成用户信息')
+        fake_user()
 
         click.echo('生成管理员（Generating the administrator...）')
         fake_admin()

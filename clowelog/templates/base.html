@@ -5,7 +5,7 @@
     {% block head %}
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <title>{% block title %}{% endblock title %} - {{ admin.blog_title|default('Blog Title') }}</title>
+        <title>{% block title %}{% endblock title %} - {{ admin_user.blog_title|default(admin.blog_title) }}</title>
         <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
         <link rel="stylesheet"
               href="{{ url_for('static', filename='css/%s.min.css' % request.cookies.get('theme', 'black_swan')) }}"
@@ -24,7 +24,10 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarColor01">
                 <ul class="navbar-nav mr-auto">
-                    {{ render_nav_item('blog.index', '主页') }}
+                    {% if current_user.is_authenticated and admin_user %}
+                        <a class="nav-link" href="{{ url_for('user.index', user_id=current_user.id) }}">主页</a>
+
+                    {% endif %}
                     {{ render_nav_item('blog.about', '关于') }}
                 </ul>
 
@@ -63,7 +66,9 @@
                                 <a class="dropdown-item" href="{{ url_for('admin.manage_link') }}">链接</a>
                             </div>
                         </li>
-                        {{ render_nav_item('admin.settings', 'Settings') }}
+                        {% if admin_user %}
+                            {{ render_nav_item('admin.settings', 'Settings') }}
+                        {% endif %}
                     {% endif %}
                 </ul>
             </div>
@@ -91,6 +96,7 @@
                     {% if current_user.is_authenticated %}
                         <a href="{{ url_for('auth.logout', next=request.full_path) }}">登出Logout</a>
                     {% else %}
+                        <a href="{{ url_for('auth.join', next=request.full_path) }}">注册</a>
                         <a href="{{ url_for('auth.login', next=request.full_path) }}">登录Login</a>
                     {% endif %}
                 </small>

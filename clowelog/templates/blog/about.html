@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}关于本博客{% endblock %}
+{% block title %}关于{% endblock %}
 
 {% block content %}
     <div class="page-header">
@@ -8,7 +8,11 @@
     </div>
     <div class="row">
         <div class="col-sm-8">
-            {{ admin.about|safe }}
+            {% if current_user.is_authenticated and admin_user %}
+                {{ admin_user.about|safe }}
+                {% else %}
+                    {{ admin.about|safe }}
+            {% endif %}
         </div>
         <div class="col-sm-4 sidebar">
             {% include "blog/_sidebar.html" %}

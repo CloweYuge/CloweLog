@@ -18,8 +18,9 @@ login_manager.login_view = 'auth.login'
 login_manager.login_message_category = 'warning'
 login_manager.login_message = '请先登录！(Please log in to access this page.)'
 
+
 @login_manager.user_loader
 def load_user(user_id):
-    from clowelog.models import Admin
-    user = Admin.query.get(int(user_id))
+    from clowelog.models import User
+    user = User.query.get(int(user_id))
     return user

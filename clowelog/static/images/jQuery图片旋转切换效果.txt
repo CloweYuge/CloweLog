@@ -1,0 +1,1 @@
+可通过参数"width"控制容器宽度，"height"控制容器高度"，posterWidth"控制图片宽度，"posterHeight"控制图片高度，"scale"控制图片倍数，"speed"控制切换效果的耗时，"autoPlay"控制是否自动播放，"delay"控制每次效果间隔，"verticalAlign"控制图片对其方式。

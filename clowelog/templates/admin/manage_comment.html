@@ -44,7 +44,7 @@
                 <tr {% if not comment.reviewed %}class="table-warning" {% endif %}>
                     <td>{{ loop.index + ((pagination.page - 1) * config['BLUELOG_COMMENT_PER_PAGE']) }}</td>
                     <td>
-                        {% if comment.from_admin %}{{ admin.name }}{% else %}{{ comment.author }}{% endif %}<br>
+                        {% if comment.from_admin %}{{ admin.user.name }}{% else %}{{ comment.user.name }}{% endif %}<br>
                         {% if comment.site %}
                             <a href="{{ comment.site }}" target="_blank">
                                 {{ comment.site }}
@@ -57,7 +57,7 @@
                         {% endif %}
                     </td>
                     <td>{{ comment.body }}</td>
-                    <td>{{ moment(comment.timestamp).format('LL') }}</td>
+                    <td>{{ moment(comment.timestamp).format('LLL') }}</td>
                     <td>
                         {% if not comment.reviewed %}
                             <form class="inline" method="post"
