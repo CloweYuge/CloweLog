@@ -30,8 +30,10 @@ def create_app(config_name=None):
 
     return app
 
+
 def register_logging(app):
     pass
+
 
 def register_extensions(app):
     bootstrap.init_app(app)
@@ -64,15 +66,18 @@ def register_template_context(app):
             if admin_user:
                 categorys = admin_user.categorys
                 unread_comments = admin_user.comments.filter_by(reviewed=False).count()
+                remind_count = admin_user.comments.filter_by(remind=True).count()
             else:
                 categorys = None
                 unread_comments = None
+                remind_count = Comment.query.with_parent(current_user).filter_by(remind=True).count()
         else:
             admin_user = None
             categorys = None
             unread_comments = None
+            remind_count = None
         return dict(unread_comments=unread_comments, admin=admin, categories=categories,
-                    admin_user=admin_user, categorie_user=categorys)
+                    admin_user=admin_user, categorie_user=categorys, remind_count=remind_count)
 
 
 def register_errors(app):
@@ -83,6 +88,7 @@ def register_errors(app):
     @app.errorhandler(CSRFError)
     def handle_csrf_error(e):
         return render_template('errors/400.html', description=e.description), 400
+
 
 def register_commands(app):
     @app.cli.command()
@@ -113,39 +119,51 @@ def register_commands(app):
 
         click.echo('完成（Done.）')
 
-
     @app.cli.command()
-    @click.option('--username', prompt=True, help='The username used to login.')
-    @click.option('--password', prompt=True, hide_input=True,
-                  confirmation_prompt=True, help='The password used to login.')
-    def init(username, password):
-        """只生成管理员账号(--username 登录名，--password 密码)，并添加默认分类，入已存在管理账号将会更新已存在的。"""
-
-        click.echo('Initializing the database...')
+    @click.option('--name', help='管理员在站点中的昵称')
+    @click.option('--username', help='用于登录的用户名')
+    @click.option('--password', hide_input=True, confirmation_prompt=True, help='用来登录的密码,不少于8位')
+    def init(username, password, name):
+        """
+        生成管理员账号，并添加默认分类，已存在管理账号将会被更新。信息可以在环境变量中配置，使用任何默认的密码配置都是不安的！
+        """
+        click.echo('初始化数据库，建表......')
         db.create_all()
+        username_ = username if username else app.config['ADMIN_ROOT'].get('username')
+        password_ = password if password else app.config['ADMIN_ROOT'].get('password')
+        name_ = name if name else app.config['ADMIN_ROOT'].get('name')
 
-        admin = Admin.query.first()
-        if admin is not None:
-            click.echo('The administrator already exists, updating...')
-            admin.username = username
-            admin.set_password(password)
+        user_root = User.query.first()     # 管理员账户一般存在于数据库第一条记录，不便于维护多管理，以后改进
+        if user_root is not None:
+            click.echo('有一个前任管理员，现在要将其下岗了...updating...')
+            user_root.username = username_
+            user_root.name = name_
+            user_root.set_password(password_)
+            user_root.admin_root = True
         else:
-            click.echo('Creating the temporary administrator account...')
-            admin = Admin(
-                username=username,
-                blog_title='Clowelog',
-                blog_sub_title="No, I'm the real thing.",
-                name='Admin',
-                about='Anything about you.'
+            click.echo('新的超级无敌至高管理员诞生了')
+            user_root = User(
+                username=username_,
+                name=name_,
+                admin_root=True
             )
-            admin.set_password(password)
-            db.session.add(admin)
-
+            user_root.set_password(password_)
+            db.session.add(user_root)
+        admin_root = Admin.query.first()
+        if admin_root is None:
+            click.echo('生成管理员博客页面......')
+            admin_root = Admin(
+                blog_title='Clowe Log!',
+                blog_sub_title='欢迎来到cloweyuge创建的博客站点~',
+                about='很荣幸看到这个页面，说明你正处于博客的公共页面'  # 说明
+            )
+            admin_root.user = User.query.first()
+            db.session.add(admin_root)
         category = Category.query.first()
         if category is None:
-            click.echo('生成默认分类（Creating the default category...）')
+            click.echo('生成默认分类......')
             category = Category(name='默认')
+            category.admin = Admin.query.all()
             db.session.add(category)
-
         db.session.commit()
         click.echo('完成Done.')

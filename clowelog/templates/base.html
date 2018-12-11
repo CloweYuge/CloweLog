@@ -34,6 +34,17 @@
                 <ul class="nav navbar-nav navbar-right">
                     {% if current_user.is_authenticated %}
                         <li class="nav-item dropdown">
+                            <a class=" nav-link dropdown-toggle" data-toggle="dropdown" role="button"
+                               aria-haspopup="true" aria-expanded="false">
+                                {{ current_user.name }}<span class="caret"></span>
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <a class="dropdown-item" href="#">关注-开发中</a>
+                                <a class="dropdown-item" href="#">好友-开发中</a>
+                                <a class="dropdown-item" href="#">链接-开发中</a>
+                            </div>
+                        </li>
+                        <li class="nav-item dropdown">
                             <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button"
                                aria-haspopup="true"
                                aria-expanded="false">
@@ -50,11 +61,14 @@
                                aria-haspopup="true"
                                aria-expanded="false">
                                 管理 <span class="caret"></span>
-                                {% if unread_comments %}
+                                {% if unread_comments or remind_count %}
                                     <span class="badge badge-success">new</span>
                                 {% endif %}
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            {% if current_user.admin_root %}
+                                <a class="dropdown-item" href="{{ url_for('admin.manage_user') }}">用户</a>
+                                {% endif %}
                                 <a class="dropdown-item" href="{{ url_for('admin.manage_post') }}">文章</a>
                                 <a class="dropdown-item" href="{{ url_for('admin.manage_category') }}">分类</a>
                                 <a class="dropdown-item" href="{{ url_for('admin.manage_comment') }}">
@@ -96,7 +110,7 @@
                     {% if current_user.is_authenticated %}
                         <a href="{{ url_for('auth.logout', next=request.full_path) }}">登出Logout</a>
                     {% else %}
-                        <a href="{{ url_for('auth.join', next=request.full_path) }}">注册</a>
+                        <a href="{{ url_for('auth.join', next=request.full_path) }}">注册</a> -
                         <a href="{{ url_for('auth.login', next=request.full_path) }}">登录Login</a>
                     {% endif %}
                 </small>

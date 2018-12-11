@@ -78,7 +78,9 @@ def show_post(post_id):
         replied_id = request.args.get('reply')
         if replied_id:
             replied_comment = Comment.query.get_or_404(replied_id)
+            replied_comment.remind = True
             comment.replied = replied_comment
+            comment.remind = True
             # send_new_reply_email(replied_comment)
         if current_user.is_authenticated:  # send message based on authentication status
             db.session.add(comment)

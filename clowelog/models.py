@@ -2,7 +2,7 @@ from clowelog.extensions import db
 from flask_login import UserMixin
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
-
+from clowelog import settings
 
 admin_category = db.Table('admincategory', db.Column('category_id', db.Integer, db.ForeignKey('category.id')),
                           db.Column('admin_id', db.Integer, db.ForeignKey('admin.id')))
@@ -21,6 +21,7 @@ class Admin(db.Model):
     # about = db.Column(db.Text)
     # category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
     categorys = db.relationship('Category', back_populates='admin', secondary=admin_category)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)  # 开通时间
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship('User', back_populates='admin', foreign_keys=[user_id])
@@ -43,6 +44,8 @@ class User(db.Model, UserMixin):
 
     email = db.Column(db.String(254))                       # 邮件
     site = db.Column(db.String(255))                        # 主页
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)  # 注册时间
+    admin_root = db.Column(db.Boolean)
 
     admin = db.relationship('Admin', back_populates='user', uselist=False)
     comments = db.relationship('Comment', back_populates='user')
@@ -53,6 +56,15 @@ class User(db.Model, UserMixin):
     def validate_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    def open_admin(self):
+        admin = Admin(
+            blog_title=settings.ADMIN_USER.get('blog_title'),
+            blog_sub_title=settings.ADMIN_USER.get('blog_sub_title'),
+            about=settings.ADMIN_USER.get('about')
+        )
+        admin.user = self
+        db.session.add(admin)
+        db.session.commit()
 
 class Category(db.Model):
     '''
@@ -106,6 +118,7 @@ class Comment(db.Model):
     body = db.Column(db.Text)
     from_admin = db.Column(db.Boolean, default=False)
     reviewed = db.Column(db.Boolean, default=False)
+    remind = db.Column(db.Boolean, default=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)         # 设置index参数表示将以此字段建立索引
 
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'))           # 设置外键指向post的id

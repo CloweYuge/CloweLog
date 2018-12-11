@@ -10,6 +10,11 @@ if WIN:
 else:
     prefix = 'sqlite:////'
 
+ADMIN_USER = {
+    'blog_title': '的博客站',
+    'blog_sub_title': '的博客介绍',
+    'about': '恭喜开通，你可以发布信息和修改了'  # 说明'
+}
 
 class BaseConfig(object):
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev key')
@@ -33,6 +38,11 @@ class BaseConfig(object):
     # ('theme name', 'display name')
     BLUELOG_THEMES = {'perfect_blue': 'Perfect Blue', 'black_swan': 'Black Swan'}
     BLUELOG_SLOW_QUERY_THRESHOLD = 1
+    ADMIN_ROOT = {
+        'username': 'admin-root',
+        'password': 'helloflask',
+        'name': 'clowe'
+    }
 
 
 class DevelopmentConfig(BaseConfig):
@@ -54,3 +64,4 @@ config = {
     'testing': TestingConfig,
     'production': ProductionConfig
 }
+

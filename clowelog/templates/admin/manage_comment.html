@@ -14,18 +14,21 @@
                 <a class="nav-link disabled" href="#">Filter </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {% if request.args.get('filter', 'all') == 'all' %}active{% endif %}"
-                   href="{{ url_for('admin.manage_comment', filter='all') }}">All</a>
+                <a class="nav-link {% if request.args.get('filter') == 'me' %}active{% endif %}"
+                   href="{{ url_for('admin.manage_comment', filter='me') }}">我的 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {% if request.args.get('filter') == 'unread' %}active{% endif %}"
-                   href="{{ url_for('admin.manage_comment', filter='unread') }}">普通用户 {% if unread_comments %}<span
+                   href="{{ url_for('admin.manage_comment', filter='unread') }}">回复 {% if remind_count %}<span
+                        class="badge badge-success">{{ remind_count }}</span>{% endif %}</a>
+            </li>
+        {% if current_user.admin %}
+            <li class="nav-item">
+                <a class="nav-link {% if request.args.get('filter') == 'blog' %}active{% endif %}"
+                   href="{{ url_for('admin.manage_comment', filter='blog') }}">博文 {% if unread_comments %}<span
                         class="badge badge-success">{{ unread_comments }}</span>{% endif %}</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link {% if request.args.get('filter') == 'admin' %}active{% endif %}"
-                   href="{{ url_for('admin.manage_comment', filter='admin') }}">来自管理员</a>
-            </li>
+        {% endif %}
         </ul>
     </div>
 
@@ -59,7 +62,7 @@
                     <td>{{ comment.body }}</td>
                     <td>{{ moment(comment.timestamp).format('LLL') }}</td>
                     <td>
-                        {% if not comment.reviewed %}
+                        {% if not comment.reviewed and admin.id == current_user.admin.id %}
                             <form class="inline" method="post"
                                   action="{{ url_for('.approve_comment', comment_id=comment.id, next=request.full_path) }}">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -80,6 +83,6 @@
         </table>
         <div class="page-footer">{{ render_pagination(pagination) }}</div>
     {% else %}
-        <div class="tip"><h5>还没有评论~</h5></div>
+        <div class="tip"><h5>{% if request.args.get('filter') == 'unread' %}还没有回复{% else %}还没有评论~{% endif %}</h5></div>
     {% endif %}
 {% endblock %}

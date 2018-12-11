@@ -5,9 +5,11 @@
 
 {% block content %}
     <div class="page-header">
-        <h1 class="display-1">{{ admin_user.blog_title|default('new Log！') }}</h1>
-        <h4 class="text-muted">&nbsp;
-            {{ admin_user.blog_sub_title|default('发布博文需要开通权限，请联系管理员~~，在这之前你可以浏览和评论0,0') }}</h4>
+        <h1 class="display-1">{% if admin_po %}{{ admin_po.blog_title }}{% else %}
+            {{ admin_user.blog_title|default('new Log！') }}{% endif %}</h1>
+        <h4 class="text-muted">&nbsp;{% if admin_po %}{{ admin_po.blog_sub_title }}{% else %}
+            {{ admin_user.blog_sub_title|default('发布博文需要开通权限，请联系管理员~~，在这之前你可以浏览和评论0,0') }}
+        {% endif %}</h4>
     </div>
     <div class="row">
         <div class="col-sm-8">

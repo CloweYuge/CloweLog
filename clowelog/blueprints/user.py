@@ -24,7 +24,7 @@ def index(user_id):
         return redirect_back()
     # pagination = Post.query.order_by(Post.timestamp.desc()).paginate(page, per_page=per_page, error_out=False)
     posts = pagination.items
-    return render_template('blog/index.html', posts=posts, pagination=pagination)
+    return render_template('blog/index.html', posts=posts, pagination=pagination, admin_po=admin)
 
 
 # @user_bp.route('/about')

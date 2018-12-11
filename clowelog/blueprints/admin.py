@@ -20,10 +20,11 @@ def settings():
     form = SettingForm()
     admin = Admin.query.with_parent(User.query.get(current_user.id)).one()
     if form.validate_on_submit():
-        current_user.name = form.name.data
-        current_user.blog_title = form.blog_title.data
-        current_user.blog_sub_title = form.blog_sub_title.data
-        current_user.about = form.about.data
+        admin.name = form.name.data
+        admin.blog_title = form.blog_title.data
+        admin.blog_sub_title = form.blog_sub_title.data
+        admin.about = form.about.data
+        db.session.add(admin)
         db.session.commit()
         flash('设置已更新~', 'success')
         return redirect(url_for('blog.index'))
@@ -32,6 +33,44 @@ def settings():
     form.blog_sub_title.data = admin.blog_sub_title
     form.about.data = admin.about
     return render_template('admin/settings.html', form=form)
+
+@admin_bp.route('/user/manage')
+def manage_user():
+    admin_root = User.query.get(current_user.id).admin_root
+    if not admin_root:
+        flash('对不起，超级无敌权限你还没有！', 'success')
+        return redirect_back()
+    filter_rule = request.args.get('filter', 'all')  # 'all', 'unreviewed', 'admin'
+    page = request.args.get('page', 1, type=int)
+    per_page = current_app.config['BLUELOG_COMMENT_PER_PAGE']
+    if filter_rule == 'unread':
+        filtered_users = User.query.filter_by(admin=None)
+    elif filter_rule == 'admin':
+        filtered_users = User.query.filter(User.admin != None)
+    else:
+        filtered_users = User.query
+
+    pagination = filtered_users.order_by(User.timestamp.desc()).paginate(page, per_page=per_page)
+    users = pagination.items
+    return render_template('admin/manage_user.html', users=users, pagination=pagination)
+
+
+@admin_bp.route('/user/<int:user_id>/delete', methods=['POST'])
+def delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+    db.session.delete(user)
+    db.session.commit()
+    flash('用户已删除！', 'success')
+    return redirect_back()
+
+
+@admin_bp.route('/user/<int:user_id>/approve', methods=['POST'])
+def approve_user(user_id):
+    user = User.query.get_or_404(user_id)
+    user.open_admin()
+    # db.session.commit()
+    flash('已为其开通博客', 'success')
+    return redirect_back()
 
 
 @admin_bp.route('/post/mange')
@@ -119,19 +158,33 @@ def approve_comment(comment_id):
 
 @admin_bp.route('/comment/manage')
 def manage_comment():
-    admin = User.query.get(current_user.id).admin
-    if admin is None:
-        flash('对不起，您还未能开通博客权限！', 'success')
-        return redirect_back()
+    user = User.query.get_or_404(current_user.id)
+    admin = Admin.query.with_parent(user).one_or_none()
+    # if admin is None:
+    #     flash('对不起，您还未能开通博客权限！', 'success')
+    #     return redirect_back()
     filter_rule = request.args.get('filter', 'all')  # 'all', 'unreviewed', 'admin'
     page = request.args.get('page', 1, type=int)
     per_page = current_app.config['BLUELOG_COMMENT_PER_PAGE']
-    if filter_rule == 'unread':
-        filtered_comments = Comment.query.with_parent(admin).filter_by(reviewed=False)
-    elif filter_rule == 'admin':
-        filtered_comments = Comment.query.with_parent(admin).filter_by(from_admin=True)
-    else:
+    if filter_rule == 'me':
+        filtered_comments = Comment.query.with_parent(user)
+    elif filter_rule == 'unread':
+        me_comment = Comment.query.with_parent(user).filter_by(remind=True).all()
+        ids = [comment.id for comment in me_comment]
+        for user_ in ids:
+            Comment.query.get(user_).remind = False
+        filtered_comments = Comment.query.filter(Comment.replied_id.in_(ids)).filter_by(remind=True)
+        for comment_ in filtered_comments.all():
+            comment_.remind = False
+        db.session.commit()
+    elif filter_rule == 'blog' and admin is not None:
         filtered_comments = Comment.query.with_parent(admin)
+        # if admin is None:
+        #     flash('还没有权限', 'success')
+        #     return redirect_back()
+        # else:
+    else:
+        filtered_comments = Comment.query.with_parent(user)
 
     pagination = filtered_comments.order_by(Comment.timestamp.desc()).paginate(page, per_page=per_page)
     comments = pagination.items
@@ -160,14 +213,16 @@ def delete_category(category_id):
 
 @admin_bp.route('/category/new', methods=['GET', 'POST'])
 def new_category():
-    admin = User.query.get(current_user.id).admin
+    admin = User.query.get_or_404(current_user.id).admin
+    print(type(admin))
     if admin is None:
         flash('对不起，您还未能开通博客权限！', 'success')
         return redirect_back()
     form = CategoryForm()
     if form.validate_on_submit():
         name = form.name.data
-        category = Category(name=name, admin=admin)
+        category = Category(name=name)
+        category.admin.append(admin)
         db.session.add(category)
         db.session.commit()
         flash('分类已创建', 'success')
