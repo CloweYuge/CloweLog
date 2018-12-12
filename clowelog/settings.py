@@ -16,6 +16,13 @@ ADMIN_USER = {
     'about': '恭喜开通，你可以发布信息和修改了'  # 说明'
 }
 
+
+class Operations:
+    CONFIRM = 'confirm'
+    RESET_PASSWORD = 'reset-password'
+    CHANGE_EMAIL = 'change-email'
+
+
 class BaseConfig(object):
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev key')
 
@@ -38,6 +45,7 @@ class BaseConfig(object):
     # ('theme name', 'display name')
     BLUELOG_THEMES = {'perfect_blue': 'Perfect Blue', 'black_swan': 'Black Swan'}
     BLUELOG_SLOW_QUERY_THRESHOLD = 1
+    BLUELOG_UPLOAD_PATH = os.path.join(basedir, 'uploads')
     ADMIN_ROOT = {
         'username': 'admin-root',
         'password': 'helloflask',

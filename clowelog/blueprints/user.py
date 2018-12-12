@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, current_app, url_for, flash, redirect, abort, make_response
 from flask_login import current_user
-from clowelog.forms import AdminCommentForm, CommentForm
+from clowelog.form_s import AdminCommentForm, CommentForm
 from clowelog.emails import send_new_comment_email, send_new_reply_email
 from clowelog.models import Post, Category, Comment, User
 from clowelog.extensions import db

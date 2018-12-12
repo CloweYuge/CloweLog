@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail
 from flask_ckeditor import CKEditor
 from flask_moment import Moment
-from flask_login import LoginManager
+from flask_login import LoginManager, AnonymousUserMixin
 from flask_wtf import CSRFProtect
 
 bootstrap = Bootstrap()
@@ -24,3 +24,15 @@ def load_user(user_id):
     from clowelog.models import User
     user = User.query.get(int(user_id))
     return user
+
+
+class Guest(AnonymousUserMixin):    # 访客拥有的类与权限，默认全部为False
+
+    def can(self, permission_name):
+        return False
+
+    @property
+    def is_admin(self):
+        return False
+
+login_manager.anonymous_user = Guest

@@ -4,12 +4,22 @@
 {% block title %}Join{% endblock %}
 
 {% block content %}
-    <div class="container h-100">
-        <div class="row h-100 page-header justify-content-center align-items-center">
-            <h1>Join now!</h1>
-        </div>
-        <div class="row h-100 justify-content-center align-items-center">
-            {{ render_form(form, extra_classes='col-6') }}
+    <div class="jumbotron">
+        <div class="row">
+            <div class="col-md-8">
+                <img src="{{ url_for('static', filename='images/index.jpg') }}" class="rounded img-fluid">
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-3 w-100 bg-light">
+                    <div class="card-header"><h4>Welcome to CloweLog!</h4></div>
+                    <div class="card-body">
+                        {{ render_form(form) }}
+                        <hr>
+                        <small>已经有账号了？ <a href="{{ url_for('.login') }}">直接登录！</a>
+                        </small>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}

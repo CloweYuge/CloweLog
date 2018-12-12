@@ -1,4 +1,5 @@
 from clowelog.extensions import db
+from flask import current_app
 from flask_login import UserMixin
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -11,15 +12,11 @@ admin_category = db.Table('admincategory', db.Column('category_id', db.Integer, 
 class Admin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    # username = db.Column(db.String(20))
-    # password_hash = db.Column(db.String(128))
     blog_title = db.Column(db.String(60))
     blog_sub_title = db.Column(db.String(100))
     blog_theme = db.Column(db.String(20))
     about = db.Column(db.Text)  # 说明
-    # name = db.Column(db.String(30))  # 站点标题
-    # about = db.Column(db.Text)
-    # category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
+
     categorys = db.relationship('Category', back_populates='admin', secondary=admin_category)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)  # 开通时间
 
@@ -28,27 +25,98 @@ class Admin(db.Model):
 
     posts = db.relationship('Post', back_populates='admin')
     comments = db.relationship('Comment', back_populates='admin', lazy='dynamic')
-    # def set_password(self, password):
-    #     self.password_hash = generate_password_hash(password)
-    #
-    # def validate_password(self, password):
-    #     return check_password_hash(self.password_hash, password)
+
+# 权限与角色关联表
+roles_permissions = db.Table('roles_permissions',
+                             db.Column('role_id', db.Integer, db.ForeignKey('role.id')),
+                             db.Column('permission_id', db.Integer, db.ForeignKey('permission.id'))
+                             )
+
+
+class Permission(db.Model):        # 权限
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(30), unique=True)
+    roles = db.relationship('Role', secondary=roles_permissions, back_populates='permissions')
+
+
+class Role(db.Model):               # 角色
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(30), unique=True)
+    users = db.relationship('User', back_populates='role')
+    permissions = db.relationship('Permission', secondary=roles_permissions, back_populates='roles')
+
+    @staticmethod
+    def init_role():
+        roles_permissions_map = {
+            'Locked': ['FOLLOW', 'COLLECT'],    # 锁定用户
+            'User': ['FOLLOW', 'COLLECT', 'COMMENT', 'UPPOST'],         # 普通用户
+            'Moderator': ['FOLLOW', 'COLLECT', 'COMMENT', 'UPPOST', 'MODERATE'],        # 协管理
+            'Administrator': ['FOLLOW', 'COLLECT', 'COMMENT', 'UPPOST', 'MODERATE', 'ADMINISTER']   # 管理员
+        }
+
+        for role_name in roles_permissions_map:
+            role = Role.query.filter_by(name=role_name).first()
+            if role is None:
+                role = Role(name=role_name)
+                db.session.add(role)
+            role.permissions = []
+            for permission_name in roles_permissions_map[role_name]:
+                permission = Permission.query.filter_by(name=permission_name).first()
+                if permission is None:
+                    permission = Permission(name=permission_name)
+                    db.session.add(permission)
+                role.permissions.append(permission)
+        db.session.commit()
+
 
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(20))                                     # 昵称
+    username = db.Column(db.String(20), unique=True, index=True)         # 登录名
 
-    username = db.Column(db.String(20))                     # 登录名
-    password_hash = db.Column(db.String(128))               # 密码
-    name = db.Column(db.String(20))                         # 昵称
-
-    email = db.Column(db.String(254))                       # 邮件
-    site = db.Column(db.String(255))                        # 主页
+    email = db.Column(db.String(254), unique=True, index=True)            # 邮件
+    password_hash = db.Column(db.String(128))                   # 密码
+    site = db.Column(db.String(255))                            # 主页
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)  # 注册时间
-    admin_root = db.Column(db.Boolean)
 
+    bio = db.Column(db.String(120))                         # 个人简介
+    location = db.Column(db.String(50))                     # 所在地
+
+    avatar_s = db.Column(db.String(64))                     # 头像
+    avatar_m = db.Column(db.String(64))
+    avatar_l = db.Column(db.String(64))
+    avatar_raw = db.Column(db.String(64))
+
+    admin_root = db.Column(db.Boolean, default=False)       # 超级管理员状态
+    confirmed = db.Column(db.Boolean, default=True)        # 确认注册状态
+    locked = db.Column(db.Boolean, default=False)           # 封禁状态
+    active = db.Column(db.Boolean, default=True)            # 活跃状态
+
+    # public_collections = db.Column(db.Boolean, default=True)
+    # receive_comment_notification = db.Column(db.Boolean, default=True)
+    # receive_follow_notification = db.Column(db.Boolean, default=True)
+    # receive_collect_notification = db.Column(db.Boolean, default=True)
+
+    role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
+
+    role = db.relationship('Role', back_populates='users', foreign_keys=[role_id])
     admin = db.relationship('Admin', back_populates='user', uselist=False)
     comments = db.relationship('Comment', back_populates='user')
+
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
+        # self.generate_avatar()
+        # self.follow(self)  # follow self
+        self.set_role()
+
+    def set_role(self):
+        if self.role is None:
+            if self.username == current_app.config['ADMIN_ROOT'].get('username'):
+                self.role = Role.query.filter_by(name='Administrator').first()
+            else:
+                self.role = Role.query.filter_by(name='User').first()
+            db.session.commit()
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -65,6 +133,15 @@ class User(db.Model, UserMixin):
         admin.user = self
         db.session.add(admin)
         db.session.commit()
+
+    @property
+    def is_admin(self):
+        return self.role.name == 'Administrator'
+
+    def can(self, permission_name):
+        permission = Permission.query.filter_by(name=permission_name).first()
+        return permission is not None and self.role is not None and permission in self.role.permissions
+
 
 class Category(db.Model):
     '''

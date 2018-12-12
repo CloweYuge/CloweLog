@@ -10,7 +10,7 @@ from clowelog.blueprints.blog import blog_bp
 from clowelog.blueprints.user import user_bp
 from clowelog.extensions import bootstrap, db, moment, ckeditor, mail, login_manager, csrf
 from clowelog.settings import config
-from clowelog.models import Admin, Category, Comment, User
+from clowelog.models import Admin, Category, Comment, User, Role
 
 
 def create_app(config_name=None):
@@ -133,6 +133,7 @@ def register_commands(app):
         password_ = password if password else app.config['ADMIN_ROOT'].get('password')
         name_ = name if name else app.config['ADMIN_ROOT'].get('name')
 
+        Role.init_role()
         user_root = User.query.first()     # 管理员账户一般存在于数据库第一条记录，不便于维护多管理，以后改进
         if user_root is not None:
             click.echo('有一个前任管理员，现在要将其下岗了...updating...')

@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, current_app, flash, redirect, url_for
 from flask_login import login_required, current_user
 from clowelog.models import Post, Category, Comment, Link, Admin, User
-from clowelog.forms import PostForm, CategoryForm, LinkForm, SettingForm
+from clowelog.form_s import PostForm, CategoryForm, LinkForm, SettingForm
 from clowelog.extensions import db
 from clowelog.utils import redirect_back
 
