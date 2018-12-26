@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/pagination.html' import render_pagination %}
+{% from 'cards.html' import photo_card, user_card, post_card with context %}
+
+{% block title %}Search: {{ q }}{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jiugongge.css') }}" type="text/css">
+{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <h1># {{ q }}</h1>
+    </div>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="nav nav-pills flex-column" role="tablist" aria-orientation="vertical">
+                <a class="nav-item nav-link {% if category == 'photo' %}active{% endif %}"
+                   href="{{ url_for('.search', q=q, category='photo') }}">文章</a>
+                <a class="nav-item nav-link {% if category == 'user' %}active{% endif %}"
+                   href="{{ url_for('.search', q=q, category='user') }}">用户</a>
+                <a class="nav-item nav-link {% if category == 'tag' %}active{% endif %}"
+                   href="{{ url_for('.search', q=q, category='tag') }}">标签</a>
+            </div>
+        </div>
+        <div class="col-md-9">
+            {% if results %}
+                <h5>{{ results|length }} 条内容</h5>
+                {% for item in results %}
+                    {% if category == 'photo' %}
+                        {% if item.type == 2 %}
+                            {{ photo_card(item) }}
+                        {% elif item.type == 1 %}
+                            <div class="photo-card card" style="height: 310.5px">
+                                {{ post_card(item) }}
+                            </div>
+                        {% endif %}
+                    {% elif category == 'user' %}
+                        {{ user_card(item) }}
+                    {% else %}
+                        <a class="badge badge-light" href="{{ url_for('.show_tag', tag_id=item.id) }}">
+                            {{ item.name }} {{ item.photos|length }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+
+            {% else %}
+                <h5 class="tip">没找到啊，重新试试？</h5>
+            {% endif %}
+        </div>
+    </div>
+    {% if results %}
+        <div class="page-footer">
+            {{ render_pagination(pagination, align='right') }}
+        </div>
+    {% endif %}
+{% endblock %}

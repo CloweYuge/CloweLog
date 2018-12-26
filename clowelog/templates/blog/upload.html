@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/form.html' import render_form, render_field %}
+
+{% block title %}Upload{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dropzone.min.css') }}" type="text/css">
+    {{ dropzone.style('margin: 20px 0; border: 2px dashed #0087F7; min-height: 200px;') }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jiugongge.css') }}" type="text/css">
+{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <h1>Upload</h1>
+        {% if stacie == 'one' %}
+            <div class="row">
+                <div class="col-md-12">
+                    {{ dropzone.create(action = url_for('main.upload', stacie='upload'), redirect_url = url_for('main.upload', stacie='text')) }}
+                    <a class="btn btn-light float-right" id="upload-btn">
+                        确认上传
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+        {% if stacie == 'text' %}
+            <div class="row">
+            {% if blog.photos|length >= 2 and blog.photos|length <= 3 %}
+                <div class="col-md-9" style="height: 300px">
+                {% else %}
+                <div class="col-md-9" style="height: 600px">
+                {% endif %}
+                    <div class="box-wrap" style="height: 100%">
+                        {% for photo in blog.photos %}
+                        {% if blog.photos|length == 1 %}
+                        <div class="photo" style="width: 98%">
+                        {% elif blog.photos|length == 2 %}
+                        <div class="photo" style="width: 47%">
+                        {% elif blog.photos|length >= 4 and blog.photos|length <= 6 %}
+                        <div class="photo" style="height: 50%">
+                        {% elif blog.photos|length >= 7 and blog.photos|length <= 9 %}
+                        <div class="photo" style="height: 33%">
+                        {% else %}
+                        <div class="photo">
+                        {% endif %}
+                            <a href="{{ url_for('main.get_image', filename=photo.filename) }}" target="_blank">
+                                <img class="img-fluid" src="{{ url_for('main.get_image', filename=photo.filename_s) }}">
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light mb-3 w-100">
+                        <div class="card-body">
+                            {% if current_user == blog.user %}
+                                <div id="form">
+                                    <form action="{{ url_for('main.edit_photos', blog_id=blog.id) }}" method="post">
+                                        {{ form.csrf_token }}
+                                        {{ render_field(form.description) }}
+                                        {{ render_field(form.tag) }}
+                                        {{ render_field(form.submit, class='btn btn-success btn-sm') }}
+                                    </form>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/dropzone.min.js') }}"></script>
+    {{ dropzone.config(custom_init='dz = this;document.getElementById("upload-btn").addEventListener("click", function handler(e) {dz.processQueue();});',
+    custom_options='autoProcessQueue: false, addRemoveLinks: true,') }}
+{#    <script src="{{ url_for('static', filename='js/myjs.js') }}"></script>#}
+{% endblock %}

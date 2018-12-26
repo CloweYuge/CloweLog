@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% from 'cards.html' import photo_card, post_card with context %}
+
+{% block title %}Explore{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jiugongge.css') }}" type="text/css">
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            {% for blog in blogs %}
+                {% if blog.type == 2 %}
+                    {{ photo_card(blog) }}
+                {% elif blog.type == 1 %}
+                    <div class="photo-card card" style="height: 310.5px">
+                        {{ post_card(blog) }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    <div class="text-center">
+        <a class="btn btn-primary" href="{{ url_for('.explore') }}">
+            <span class="oi oi-loop-circular"></span> 换一换
+        </a>
+    </div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/pagination.html' import render_pagination %}
+{% from 'cards.html' import photo_card, post_card with context %}
+
+{% block title %}{{ user.name }}'s collection{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jiugongge.css') }}" type="text/css">
+{% endblock %}
+
+{% block content %}
+    {% include 'user/_header.html' %}
+    <div class="row">
+        <div class="col-md-12">
+            {% if user.public_collections or current_user == user %}
+                {% if collects %}
+                    {% for collect in collects %}
+                        {% if collect.collected.type == 2 %}
+                            {{ photo_card(collect.collected) }}
+                        {% elif collect.collected.type == 1 %}
+                            <div class="photo-card card" style="height: 310.5px">
+                                {{ post_card(collect.collected) }}
+                            </div>
+                        {% endif %}
+
+                    {% endfor %}
+                {% else %}
+                    <div class="tip">
+                        <h3>还没有收藏过.</h3>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="tip">
+                    <h3>该用户的收藏未公开.</h3>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% if collections %}
+        <div class="page-footer">
+            {{ render_pagination(pagination, align='center') }}
+        </div>
+    {% endif %}
+{% endblock %}

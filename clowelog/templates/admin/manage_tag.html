@@ -1,0 +1,47 @@
+{% extends 'admin/index.html' %}
+{% from 'bootstrap/pagination.html' import render_pagination %}
+
+{% block title %}Manage Tags{% endblock %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            {{ render_breadcrumb_item('admin.index', '管理首页') }}
+            {{ render_breadcrumb_item('admin.manage_tag', '标签管理') }}
+        </ol>
+    </nav>
+    <div class="page-header">
+        <h1>标签列表
+            <small class="text-muted">{{ pagination.total }}</small>
+        </h1>
+    </div>
+    {% if tags %}
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>No.</th>
+                <th>名称</th>
+                <th>关联图文</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            {% for tag in tags %}
+                <tr>
+                    <td>{{ tag.id }}</td>
+                    <td>{{ tag.name }}</td>
+                    <td><a href="{{ url_for('blog.show_tag', tag_id=tag.id) }}">{{ tag.blogs|length }}</a></td>
+                    <td>
+                        <form class="inline" action="{{ url_for('admin.delete_tag', tag_id=tag.id) }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="submit" onclick="return confirm('你确定删除该标签吗？');"
+                                   class="btn btn-danger btn-sm" value="删除">
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+        <div class="page-footer">{{ render_pagination(pagination) }}</div>
+    {% else %}
+        <div class="tip"><h5>No tags.</h5></div>
+    {% endif %}
+{% endblock %}

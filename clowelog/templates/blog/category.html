@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from 'bootstrap/form.html' import render_form, render_field %}
 {% from 'bootstrap/pagination.html' import render_pagination %}
 
 {% block title %}{{ category.name }}{% endblock %}
@@ -6,7 +7,7 @@
 {% block content %}
     <div class="page-header">
         <h1>分类: {{ category.name }}</h1>
-        <p class="text-muted">{{ category.posts|length }} 篇文章</p>
+        <p class="text-muted">{{ category.blogs|length }} 篇文章</p>
     </div>
     <div class="row">
         <div class="col-sm-8">
@@ -14,7 +15,7 @@
             <div class="page-footer">{{ render_pagination(pagination) }}</div>
         </div>
         <div class="col-sm-4 sidebar">
-            {% include "blog/_sidebar.html" %}
+            {% include "blog/_post_sidebar.html" %}
         </div>
     </div>
 {% endblock %}

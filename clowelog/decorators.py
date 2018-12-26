@@ -2,6 +2,7 @@ from functools import wraps
 
 from flask import Markup, flash, url_for, redirect, abort
 from flask_login import current_user
+from clowelog.models import Useronline
 
 
 def confirm_required(func):
@@ -30,5 +31,14 @@ def permission_required(permission_name):       # 检查权限，传入权限名
     return decorator
 
 
-def admin_required(func):                       # 只检查是不是管理员
+def admin_required(func):                       # 只检查是不是最高管理员
     return permission_required('ADMINISTER')(func)
+
+
+def online_required(func):
+    @wraps(func)
+    def clike_function(*args, **kwargs):
+        if not current_user.online.ifonline(current_user.id):
+            abort(403)                          # 这里只是限制点击次数，应该设置频繁点击的提醒页面
+        return func(*args, **kwargs)
+    return clike_function

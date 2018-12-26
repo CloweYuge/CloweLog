@@ -1,5 +1,5 @@
 from flask import Blueprint, url_for, redirect, flash, render_template
-from flask_login import login_user, current_user, login_required, logout_user
+from flask_login import login_user, current_user, login_required, logout_user, login_fresh, confirm_login
 from clowelog.extensions import db
 from clowelog.models import User
 from clowelog.forms.auth import LoginForm, JoinForm
@@ -29,6 +29,19 @@ def login():
     return render_template('auth/login.html', form=form)
 
 
+@auth_bp.route('/re-authenticate', methods=['GET', 'POST'])
+@login_required
+def re_authenticate():
+    if login_fresh():
+        return redirect(url_for('main.index'))
+
+    form = LoginForm()
+    if form.validate_on_submit() and current_user.validate_password(form.password.data):
+        confirm_login()
+        return redirect_back()
+    return render_template('auth/login.html', form=form)
+
+
 @auth_bp.route('/join', methods=['GET', 'POST'])
 def join():
     if current_user.is_authenticated:
@@ -54,5 +67,5 @@ def join():
 @login_required
 def logout():
     logout_user()
-    flash('Logout success.', 'info')
-    return redirect_back()
+    flash('已退出登录.', 'info')
+    return redirect(url_for('auth.login'))

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/form.html' import render_form, render_field %}
+{% from 'bootstrap/pagination.html' import render_pagination %}
+{% from 'cards.html' import post_card with context %}
+
+{% block title %}{{ user.name }}{% endblock %}
+
+{% block content %}
+    {% include 'user/_header.html' %}
+    <div class="row">
+        <div class="col-sm-8">
+            {% if blogs %}
+                {% for blog in blogs %}
+                    {{ post_card(blog) }}
+                    {% if not loop.last %}
+                    <hr>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <div class="tip">
+                    <h5>还没有文章</h5>
+                    {% if current_user.is_authenticated %}<a href="{{ url_for('main.new_post') }}">现在去发布~</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="col-sm-4 sidebar">
+            {% include 'blog/_post_sidebar.html' %}
+        </div>
+    </div>
+    {% if posts %}
+        <div class="page-footer">
+            {{ render_pagination(pagination, align='center') }}
+        </div>
+    {% endif %}
+{% endblock %}

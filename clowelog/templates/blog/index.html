@@ -3,23 +3,155 @@
 
 {% block title %}Home{% endblock %}
 
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jiugongge.css') }}" type="text/css">
+{% endblock %}
+
 {% block content %}
-    <div class="page-header">
-        <h1 class="display-1">{% if admin_po %}{{ admin_po.blog_title }}{% else %}
-            {{ admin_user.blog_title|default('new Log！') }}{% endif %}</h1>
-        <h4 class="text-muted">&nbsp;{% if admin_po %}{{ admin_po.blog_sub_title }}{% else %}
-            {{ admin_user.blog_sub_title|default('发布博文需要开通权限，请联系管理员~~，在这之前你可以浏览和评论0,0') }}
-        {% endif %}</h4>
-    </div>
-    <div class="row">
-        <div class="col-sm-8">
-            {% include 'blog/_posts.html' %}
-            {% if posts %}
-                <div class="page-footer">{{ render_pagination(pagination) }}</div>
+{% if current_user.is_authenticated %}
+    <div class="row justify-content-md-center">
+
+        <div class="col-md-8">
+            {% if blogs %}
+                {% for blog in blogs %}
+                    <div class="card mb-3 w-100 bg-light">
+                        <div class="card-header">
+                            <a class="dead-link" href="{{ url_for('user.index', username=blog.user.username) }}">
+                                <img class="rounded img-fluid avatar-s profile-popover"
+                                     data-href="{{ url_for('ajax.get_profile', user_id=blog.user.id) }}"
+                                     src="{{ url_for('main.get_avatar', filename=blog.user.avatar_m) }}">
+                            </a>
+                            <a class="profile-popover trend-card-avatar"
+                               data-href="{{ url_for('ajax.get_profile', user_id=blog.user.id) }}"
+                               href="{{ url_for('user.index', username=blog.user.username) }}">{{ blog.user.name }}</a>
+                            <span class="float-right">
+                                <small data-toggle="tooltip" data-placement="top"
+                                       data-timestamp="{{ blog.timestamp }}" data-delay="500">
+                                    {{ moment(blog.timestamp).fromNow(refresh=True) }}
+                                </small>
+                            </span>
+                        </div>
+                        {% if blog.type == 2 %}
+                            <a href="{{ url_for('blog.show_photo', blog_id=blog.id) }}">
+                                <div class="card-body">
+                                {% if blog.photos|length >= 2 and blog.photos|length <= 3 %}
+                                    <div class="box-wrap card-thumbnail" href="{{ url_for('blog.show_photo', blog_id=blog.id) }}" style="height: 300px">
+                                {% elif blog.photos|length == 1 and blog.photos[0].type_photo == 's' %}
+                                    <div class="box-wrap card-thumbnail" href="{{ url_for('blog.show_photo', blog_id=blog.id) }}" style="height: 900px">
+                                {% else %}
+                                    <div class="box-wrap card-thumbnail" href="{{ url_for('blog.show_photo', blog_id=blog.id) }}">
+                                {% endif %}
+                                        {% for photo in blog.photos %}
+                                        {% if blog.photos|length == 1 %}
+                                        <div class="photo" style="width: 98%">
+                                        {% elif blog.photos|length == 2 %}
+                                        <div class="photo" style="width: 47%;margin-right: 2%">
+                                        {% elif blog.photos|length >= 4 and blog.photos|length <= 6 %}
+                                        <div class="photo" style="height: 48%">
+                                        {% elif blog.photos|length >= 7 and blog.photos|length <= 9 %}
+                                        <div class="photo" style="height: 32%">
+                                        {% else %}
+                                        <div class="photo">
+                                        {% endif %}
+                                            {% if photo.type_photo == 's' %}
+                                                {% if blog.photos|length == 1 %}
+                                                    <img class="img-fluid portrait" src="{{ url_for('main.get_image', filename=photo.filename_m) }}">
+                                                {% else %}
+                                                    <img class="img-fluid portrait" src="{{ url_for('main.get_image', filename=photo.filename_s) }}">
+                                                {% endif %}
+                                            {% else %}
+                                                {% if blog.photos|length == 1 %}
+                                                    <img class="img-fluid portrait" src="{{ url_for('main.get_image', filename=photo.filename_m) }}" style="height: 100%; max-width: none; width: auto">
+                                                {% else %}
+                                                    <img class="img-fluid portrait" src="{{ url_for('main.get_image', filename=photo.filename_s) }}" style="height: 100%; max-width: none; width: auto">
+                                                {% endif %}
+                                            {% endif %}
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </a>
+                        {% elif blog.type == 1 %}
+                            <a class="thumbnail" href="{{ url_for('blog.show_post', blog_id=blog.id) }}">
+                                <div class="card-body">
+                                    <div class="" align="center">
+                                        <p>
+                                            {{ blog.text.body|striptags|truncate }}
+                                            <small><a href="{{ url_for('.show_post', blog_id=blog.id) }}">...阅读全文</a></small>
+                                        </p>
+                                        <small>
+                                            分类: <a
+                                                href="{{ url_for('.show_category', category_id=blog.category.id) }}">{{ blog.category.name }}</a>
+                                        </small>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endif %}
+                        <div class="card-footer">
+                            <span class="oi oi-star"></span>
+                            <span id="collectors-count-{{ blog.id }}"
+                                  data-href="{{ url_for('ajax.collectors_count', blog_id=blog.id) }}">
+                                {{ blog.collectors|length }}
+                            </span>&nbsp;&nbsp;
+                            <span class="oi oi-comment-square"></span> {{ blog.comments|length }}
+                            <div class="float-right">
+                                {% if current_user.is_authenticated %}
+                                    <button class="{% if not current_user.is_collecting(blog) %}hide{% endif %}
+                                     btn btn-outline-secondary btn-sm uncollect-btn"
+                                            data-href="{{ url_for('ajax.uncollect', blog_id=blog.id) }}"
+                                            data-id="{{ blog.id }}">
+                                        <span class="oi oi-x"></span> 取消
+                                    </button>
+                                    <button class="{% if current_user.is_collecting(blog) %}hide{% endif %}
+                                     btn btn-outline-primary btn-sm collect-btn"
+                                            data-href="{{ url_for('ajax.collect', blog_id=blog.id) }}"
+                                            data-id="{{ blog.id }}">
+                                        <span class="oi oi-star"></span> 收藏
+                                    </button>
+                                {% else %}
+                                    <form class="inline" method="post"
+                                          action="{{ url_for('main.collect', blog_id=blog.id) }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-outline-primary btn-sm">
+                                            <span class="oi oi-star"></span> 点赞
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                            {% if blog.description %}
+                                <p class="card-text">{{ blog.description }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="tip text-center">
+                    <h3>还没有内容 OTR...</h3>
+                    <p><a href="{{ url_for('blog.explore') }}">去发现</a></p>
+                </div>
             {% endif %}
         </div>
-        <div class="col-sm-4 sidebar">
+        <div class="col-md-3">
             {% include 'blog/_sidebar.html' %}
         </div>
     </div>
+{% if blogs %}
+    {{ render_pagination(pagination, align='center') }}
+{% endif %}
+{% else %}
+    <div class="jumbotron">
+        <div class="row">
+            <div class="col-md-8">
+                <img src="{{ url_for('static', filename='images/index.jpg') }}" class="rounded img-fluid">
+            </div>
+            <div class="col-md-4 align-self-center">
+                <h1>CloweLog!</h1>
+                <p>记录你生活的每一天。</p>
+                <p><a class="btn btn-primary btn-lg" href="{{ url_for('auth.login') }}">Login</a>&nbsp;&nbsp;</p>
+                <p><a class="btn btn-outline-primary" href="{{ url_for('auth.join') }}">Join Now</a></p>
+            </div>
+        </div>
+    </div>
+{% endif %}
 {% endblock %}

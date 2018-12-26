@@ -8,14 +8,7 @@
     </div>
     <div class="row">
         <div class="col-sm-8">
-            {% if current_user.is_authenticated and admin_user %}
-                {{ admin_user.about|safe }}
-                {% else %}
-                    {{ admin.about|safe }}
-            {% endif %}
-        </div>
-        <div class="col-sm-4 sidebar">
-            {% include "blog/_sidebar.html" %}
+            {{ about.get('about')|safe }}
         </div>
     </div>
 {% endblock %}

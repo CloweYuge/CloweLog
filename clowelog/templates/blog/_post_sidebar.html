@@ -1,0 +1,79 @@
+{% if links %}
+    <div class="card mb-3">
+        <div class="card-header">链接Links</div>
+        <ul class="list-group list-group-flush">
+            {% for link in links %}
+                <li class="list-group-item  list-group-item-action d-flex justify-content-between align-items-center">
+                    <a href="{{ link.url }}" target="_blank">{{ link.name }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+{% if user.categorys %}
+    <div class="card mb-3 w-100 bg-light">
+        <div class="card-body">
+            <h5>
+                分类
+                {% if current_user == user %}
+                    <a id="category-btn" href="#!">
+                        <small><span class="float-right oi oi-pencil"> 管理分类</span></small>
+                    </a>
+                {% endif %}
+            </h5>
+        </div>
+        {% if current_user == user %}
+            <div id="category-form">
+                <form action="{{ url_for('user.new_category', user_id=user.id) }}" method="post">
+                    {{ category_form.csrf_token }}
+                    {{ render_field(category_form.category) }}
+                    <a class="btn btn-light btn-sm" id="cancel-category">取消</a>
+                    {{ render_field(category_form.submit, class='btn btn-success btn-sm') }}
+                </form>
+                {% if user.categorys %}
+                    <hr>
+                    {% for category in user.categorys %}
+                        <a class="dead-link" href="#!"
+                           data-href="{{ url_for('user.delete_category', user_id=user.id, category_id=category.id) }}"
+                           data-toggle="modal" data-target="#confirm-delete" title="Delete category">
+                            <span class="badge badge-danger">
+                                {{ category.name }}
+                                <span class="oi oi-trash" aria-hidden="true"></span>
+                            </span>
+                        </a>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        {% endif %}
+        <div id="categorys">
+            <ul class="list-group list-group-flush">
+            {% if user.categorys %}
+                {% for category in user.categorys %}
+                    <li class="list-group-item  list-group-item-action d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('blog.show_category', category_id=category.id) }}">
+                            {{ category.name }}
+                        </a>
+                        <span class="badge badge-primary badge-pill"> {{ category.blogs|length }}</span>
+                    </li>
+                {% endfor %}
+            {% endif %}
+            </ul>
+        </div>
+
+    </div>
+{% endif %}
+
+<div class="dropdown">
+    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenuButton"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        更换主题
+    </button>
+    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+        {% for theme_name, display_name in config.BLUELOG_THEMES.items() %}
+            <a class="dropdown-item"
+               href="{{ url_for('blog.change_theme', theme_name=theme_name, next=request.full_path) }}">
+                {{ display_name }}</a>
+        {% endfor %}
+    </div>
+</div>

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/form.html' import render_form, render_field %}
+
+{% block title %}Edit Post{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <h1>修改文章</h1>
+    </div>
+    <div class="row">
+        <div class="col-sm-9">
+            {{ render_field(form.title) }}
+        </div>
+        <div class="col-sm-9">
+            {{ render_field(form.body) }}
+        </div>
+        <div class="col-sm-3" style="margin-top: 2.5%">
+            <div class="card bg-light mb-3 w-100">
+                <div class="card-body">
+                    <div id="form">
+                        <form action="{{ url_for('main.edit_post', post_id=blog_id) }}" method="post">
+                            {{ form.csrf_token }}
+                            {{ render_field(form.category) }}
+                            {{ render_field(form.submit, class='btn btn-success btn-sm') }}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript" src="{{ url_for('static', filename='ckeditor/ckeditor.js') }}"></script>
+{% endblock %}

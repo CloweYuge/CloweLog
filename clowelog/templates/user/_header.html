@@ -1,0 +1,82 @@
+{% from 'cards.html' import follow_area with context %}
+{% from 'bootstrap/nav.html' import render_nav_item %}
+
+
+<div class="row">
+    <div class="col-md-3">
+        <a href="{% if current_user == user %}{{ url_for('.change_avatar', upload='l') }}{% else %}#{% endif %}"
+           title="Change avatar">
+            <img class="img-fluid rounded" src="{{ url_for('main.get_avatar', filename=user.avatar_l ) }}">
+        </a>
+    </div>
+    <div class="col-md-9">
+        <h1>{{ user.name }}
+            <small class="text-muted">{{ user.username }}</small>
+        </h1>
+        {% if user.bio %}<p>{{ user.bio }}</p>{% endif %}
+        <p>
+            {% if user.site %}
+                <span class="oi oi-link-intact"></span>
+                <a href="{{ user.site }}" target="_blank">{{ user.site|truncate(30) }}</a>&nbsp;&nbsp;
+            {% endif %}
+            {% if user.location %}
+                <span class="oi oi-map-marker"></span>
+                <a href="https://www.google.com/maps?q={{ user.location }}"
+                   target="_blank">{{ user.location|truncate(30) }}</a>&nbsp;&nbsp;
+            {% endif %}
+            <span class="oi oi-calendar"></span>
+            Joined {{ moment(user.timestamp).format('LL') }}
+        </p>
+        <div>
+            {% if current_user != user %}
+                {% if current_user.can('MODERATE') %}
+                    {% if user.locked %}
+                        <form class="inline" action="{{ url_for('admin.unlock_user', user_id=user.id) }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="submit" class="btn btn-secondary btn-sm" value="解除锁定">
+                        </form>
+                    {% else %}
+                        <form class="inline" action="{{ url_for('admin.lock_user', user_id=user.id) }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="submit" class="btn btn-warning btn-sm" value="锁定">
+                        </form>
+                    {% endif %}
+                    {% if user.active %}
+                        <form class="inline" action="{{ url_for('admin.block_user', user_id=user.id) }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="submit" class="btn btn-warning btn-sm" value="封禁">
+                        </form>
+                    {% else %}
+                        <form class="inline" action="{{ url_for('admin.unblock_user', user_id=user.id) }}"
+                              method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="submit" class="btn btn-secondary btn-sm" value="解除封禁">
+                        </form>
+                    {% endif %}
+                    <a class="btn btn-light btn-sm" href="mailto:{{ user.email }}">Email</a>
+                {% endif %}
+
+                {% if current_user.is_admin %}
+                    <a class="btn btn-warning btn-sm" href="{{ url_for('admin.edit_profile_admin', user_id=user.id) }}">修改信息</a>
+                {% endif %}
+            {% endif %}
+            <div class="float-right">
+                {{ follow_area(user) }}
+                {% if current_user.is_authenticated and user == current_user %}
+                    <a class="btn btn-outline-primary btn-sm" href="{{ url_for('.edit_profile') }}">修改</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="user-nav">
+    <ul class="nav nav-tabs">
+        {% if user.can('UPPOST') %}
+        {{ render_nav_item('user.index', '文章', user.posts|length, username=user.username) }}
+        {% endif %}
+        {{ render_nav_item('user.show_photo', '图片', user.photos|length, username=user.username) }}
+        {{ render_nav_item('user.show_collections', '收藏', user.collections|length, username=user.username) }}
+        {{ render_nav_item('user.show_following', '关注列表', user.following.count() - 1, username=user.username) }}
+        {{ render_nav_item('user.show_followers', '粉丝列表', user.followers.count() - 1, username=user.username) }}
+    </ul>
+</div>

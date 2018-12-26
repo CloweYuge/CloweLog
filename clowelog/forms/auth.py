@@ -7,22 +7,24 @@ from clowelog.models import User
 
 
 class LoginForm(FlaskForm):
-    username = StringField('用户名(Username)', validators=[DataRequired(), Length(1, 20)])
+    username = StringField('用户名', validators=[DataRequired(), Length(1, 20)])
     password = PasswordField('密码', validators=[DataRequired()])
     remember = BooleanField('记住我')
     submit = SubmitField('Log in')
 
 
 class JoinForm(FlaskForm):
-    name = StringField('昵称', validators=[DataRequired(), Length(1, 30)])
-    email = StringField('Email', validators=[DataRequired(), Length(1, 254), Email()])
+    name = StringField('昵称', validators=[DataRequired(), Length(5, 30, message='长度为5-30位字符')])
+    email = StringField('Email', validators=[DataRequired(), Length(1, 254),
+                                             Email(message='请输入正确的邮箱地址！')])
     username = StringField(
-        '登录用户名', validators=[DataRequired(), Length(1, 20),
-                             Regexp('^[a-zA-Z0-9]*$', message='用户名应该包含大小写字母和数字！')])
+        '用户名', validators=[DataRequired(), Length(5, 20, message='长度为5-20位字符'),
+                           Regexp('^[a-zA-Z0-9]*$', message='用户名由英文字母和数字组成！')])
     password = PasswordField('密码', validators=[
-        DataRequired(), Length(8, 128), EqualTo('password2')])
+        DataRequired(), Length(8, 128,message='密码长度需要在8-128位之间'), 
+        EqualTo('password2', message='密码不一致')])
     password2 = PasswordField('确认密码', validators=[DataRequired()])
-    submit = SubmitField()
+    submit = SubmitField('注册')
 
     def validate_name(self, field):
         if User.query.filter_by(name=field.data).first():
@@ -44,7 +46,7 @@ class ForgetPasswordForm(FlaskForm):        # 忘记密码
 
 class ResetPasswordForm(FlaskForm):         # 重置密码
     email = StringField('Email', validators=[DataRequired(), Length(1, 254), Email()])
-    password = PasswordField('Password', validators=[
+    password = PasswordField('新密码', validators=[
         DataRequired(), Length(8, 128), EqualTo('password2')])
-    password2 = PasswordField('Confirm password', validators=[DataRequired()])
+    password2 = PasswordField('确认密码', validators=[DataRequired()])
     submit = SubmitField()

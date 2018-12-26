@@ -1,80 +1,64 @@
-{% extends 'base.html' %}
+{% extends 'admin/index.html' %}
 {% from 'bootstrap/pagination.html' import render_pagination %}
 
 {% block title %}Manage Comments{% endblock %}
 
 {% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            {{ render_breadcrumb_item('admin.index', '管理首页') }}
+            {{ render_breadcrumb_item('admin.manage_comment', '评论管理') }}
+        </ol>
+    </nav>
     <div class="page-header">
         <h1>评论列表
             <small class="text-muted">{{ pagination.total }}</small>
+            <span class="dropdown">
+            <button class="btn btn-secondary btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
+                Order by {{ order_rule }} <span class="oi oi-elevator"></span>
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                {% if order_rule == 'flag' %}
+                    <a class="dropdown-item" href="{{ url_for('.manage_comment', order='by_time') }}">Order by
+                    Time</a>
+                {% else %}
+                    <a class="dropdown-item" href="{{ url_for('.manage_comment', order='by_flag') }}">Order by
+                    Flag</a>
+                {% endif %}
+            </div>
+        </span>
         </h1>
-
-        <ul class="nav nav-pills">
-            <li class="nav-item">
-                <a class="nav-link disabled" href="#">Filter </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if request.args.get('filter') == 'me' %}active{% endif %}"
-                   href="{{ url_for('admin.manage_comment', filter='me') }}">我的 </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if request.args.get('filter') == 'unread' %}active{% endif %}"
-                   href="{{ url_for('admin.manage_comment', filter='unread') }}">回复 {% if remind_count %}<span
-                        class="badge badge-success">{{ remind_count }}</span>{% endif %}</a>
-            </li>
-        {% if current_user.admin %}
-            <li class="nav-item">
-                <a class="nav-link {% if request.args.get('filter') == 'blog' %}active{% endif %}"
-                   href="{{ url_for('admin.manage_comment', filter='blog') }}">博文 {% if unread_comments %}<span
-                        class="badge badge-success">{{ unread_comments }}</span>{% endif %}</a>
-            </li>
-        {% endif %}
-        </ul>
     </div>
-
     {% if comments %}
         <table class="table table-striped">
             <thead>
             <tr>
-                <th>No.</th>
-                <th>Author</th>
-                <th>Body</th>
-                <th>Date</th>
-                <th>Actions</th>
+                <th>内容</th>
+                <th>用户</th>
+                <th>图像</th>
+                <th>举报</th>
+                <th>时间</th>
+                <th>操作</th>
             </tr>
             </thead>
             {% for comment in comments %}
-                <tr {% if not comment.reviewed %}class="table-warning" {% endif %}>
-                    <td>{{ loop.index + ((pagination.page - 1) * config['BLUELOG_COMMENT_PER_PAGE']) }}</td>
-                    <td>
-                        {% if comment.from_admin %}{{ admin.user.name }}{% else %}{{ comment.user.name }}{% endif %}<br>
-                        {% if comment.site %}
-                            <a href="{{ comment.site }}" target="_blank">
-                                {{ comment.site }}
-                            </a><br>
-                        {% endif %}
-                        <a href="mailto:{{ comment.email }}">{{ comment.email }}</a>
-
-                        {% if comment.from_admin %}
-                            <span class="badge badge-primary">Author</span>
-                        {% endif %}
-                    </td>
+                <tr>
                     <td>{{ comment.body }}</td>
-                    <td>{{ moment(comment.timestamp).format('LLL') }}</td>
                     <td>
-                        {% if not comment.reviewed and admin.id == current_user.admin.id %}
-                            <form class="inline" method="post"
-                                  action="{{ url_for('.approve_comment', comment_id=comment.id, next=request.full_path) }}">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                <button type="submit" class="btn btn-success btn-sm">允许</button>
-                            </form>
-                        {% endif %}
-                        <a class="btn btn-info btn-sm" href="{{ url_for('blog.show_post', post_id=comment.post.id) }}">查看文章</a>
+                        <a href="{{ url_for('user.index', username=comment.author.username) }}">{{ comment.author.name }}</a>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('main.show_photo', photo_id=comment.photo.id) }}">Photo {{ comment.photo.id }}</a>
+                    </td>
+                    <td>{{ comment.flag }}</td>
+                    <td>{{ moment(comment.timestamp).format('LL') }}</td>
+                    <td>
                         <form class="inline" method="post"
-                              action="{{ url_for('.delete_comment', comment_id=comment.id, next=request.full_path) }}">
+                              action="{{ url_for('main.delete_comment', comment_id=comment.id, next=request.full_path) }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                             <button type="submit" class="btn btn-danger btn-sm"
-                                    onclick="return confirm('Are you sure?');">删除
+                                    onclick="return confirm('Are you sure?');">Delete
                             </button>
                         </form>
                     </td>
@@ -83,6 +67,6 @@
         </table>
         <div class="page-footer">{{ render_pagination(pagination) }}</div>
     {% else %}
-        <div class="tip"><h5>{% if request.args.get('filter') == 'unread' %}还没有回复{% else %}还没有评论~{% endif %}</h5></div>
+        <div class="tip"><h5>No comments.</h5></div>
     {% endif %}
 {% endblock %}

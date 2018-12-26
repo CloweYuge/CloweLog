@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/pagination.html' import render_pagination %}
+{% from 'cards.html' import photo_card with context %}
+
+{% block title %}{{ user.name }}{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jiugongge.css') }}" type="text/css">
+{% endblock %}
+
+{% block content %}
+    {% include 'user/_header.html' %}
+    <div class="row">
+        <div class="col-md-12">
+            {% if blogs %}
+                {% for blog in blogs %}
+                    {{ photo_card(blog) }}
+                {% endfor %}
+            {% else %}
+                <div class="tip text-center">
+                    <h3>还没有分享图片~</h3>
+                    {% if user == current_user %}
+                        <a class="btn btn-link" href="{{ url_for('main.upload', stacie='one') }}">去上传</a>
+                    {% else %}
+                        <a class="btn btn-link" href="{{ url_for('blog.explore') }}">去发现</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% if blogs %}
+        <div class="page-footer">
+            {{ render_pagination(pagination, align='center') }}
+        </div>
+    {% endif %}
+{% endblock %}

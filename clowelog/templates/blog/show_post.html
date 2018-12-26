@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/form.html' import render_form, render_field %}
+{% from 'bootstrap/pagination.html' import render_pagination %}
+
+{% block title %}{{ blog.description }}{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <h1>{{ blog.description }}
+        <small>
+                <a href="{{ url_for('user.index', username= blog.user.username) }}">by：{{ blog.user.name }}</a>
+            </small>
+            <span class="float-right">
+        {% if current_user.is_authenticated and blog.user == current_user %}
+            <a class="btn btn-info btn-sm" href="{{ url_for('main.edit_post', post_id=blog.id) }}">修改</a>
+            <form class="inline" method="post"
+                  action="{{ url_for('admin.delete_post', post_id=blog.id, next=url_for('blog.index')) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?');">删除
+                </button>
+            </form>
+        {% endif %}
+      </span>
+        </h1>
+        <small>
+            分类: <a href="{{ url_for('.show_category', category_id=blog.category.id) }}">{{ blog.category.name }}
+        </a><br>
+            发布时间: {{ moment(blog.timestamp).format('LLL') }}
+
+        </small>
+    </div>
+    <div class="row">
+        <div class="col-sm-8">
+            {{ blog.text.body|safe }}
+            <hr>
+            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target=".blogLinkModal">分享
+            </button>
+            <div class="modal fade blogLinkModal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">复制分享链接</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <input type="text" class="form-control"
+                                       value="{{ url_for('.show_post', blog_id=blog.id, _external=True) }}" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% include 'blog/_comment.html' %}
+        </div>
+        <div class="col-sm-4 sidebar">
+            {% include "blog/_post_sidebar.html" %}
+        </div>
+    </div>
+{% endblock %}

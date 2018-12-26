@@ -1,0 +1,92 @@
+{% macro photo_card(blog) %}
+    <div class="photo-card card">
+        <a class="card-photo card-thumbnail" href="{{ url_for('blog.show_photo', blog_id=blog.id) }}">
+            <div class="box-wrap" style="height: inherit">
+                {% for photo in blog.photos %}
+                    {% if blog.photos|length == 1 %}
+                    <div class="photo" style="width: 98%; height: inherit">
+                    {% elif blog.photos|length == 2 %}
+                    <div class="photo" style="width: 47%; height: inherit;margin-right: 2%">
+                    {% else %}
+                    <div class="photo" style="height: 31%">
+                    {% endif %}
+                        {% if photo.type_photo == 's' %}
+                            {% if blog.photos|length == 2 %}
+                            <img class="img-fluid portrait" src="{{ url_for('main.get_image', filename=photo.filename_s) }}" style="height: 100%; max-width: none; width: auto">
+                            {% else %}
+                            <img class="img-fluid portrait" src="{{ url_for('main.get_image', filename=photo.filename_s) }}">
+                            {% endif %}
+                        {% elif photo.type_photo == 'z' %}
+                        <img class="img-fluid portrait" src="{{ url_for('main.get_image', filename=photo.filename_s) }}" style="height: auto; max-width: none; width: 100%">
+                        {% else %}
+                        <img class="img-fluid portrait" src="{{ url_for('main.get_image', filename=photo.filename_s) }}" style="height: 100%; max-width: none; width: auto">
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </a>
+        <div class="card-body">
+            <span class="oi oi-star"></span> {{ blog.collectors|length }}
+            <span class="oi oi-comment-square"></span> {{ blog.comments|length }}
+            <span class="float-right">{{ moment(blog.timestamp).fromNow(refresh=True) }}</span>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro post_card(blog) %}
+    <h3 class="text-primary"><a href="{{ url_for('blog.show_post', blog_id=blog.id) }}">{{ blog.description }}</a></h3>
+        <p style="overflow: hidden;height: inherit;text-align: center">
+            {{ blog.text.body|striptags|truncate(175, end='......') }}
+            <small><a href="{{ url_for('blog.show_post', blog_id=blog.id) }}">...阅读全文</a></small>
+        </p>
+        <div class="card-body">
+            <span class="oi oi-comment-square"></span> {{ blog.comments|length }}&nbsp;&nbsp;
+            分类: <a
+                href="{{ url_for('blog.show_category', category_id=blog.category.id) }}">{{ blog.category.name }}</a>
+            <span class="float-right">{{ moment(blog.timestamp).fromNow(refresh=True) }}</span>
+        </div>
+{% endmacro %}
+
+{% macro user_card(user) %}
+    <div class="user-card text-center">
+        <a href="{{ url_for('user.index', username=user.username) }}">
+            <img class="rounded avatar-m" src="{{ url_for('main.get_avatar', filename=user.avatar_m) }}">
+        </a>
+        <h6>
+            <a href="{{ url_for('user.index', username=user.username) }}">{{ user.name }}</a>
+        </h6>
+        {{ follow_area(user) }}
+    </div>
+{% endmacro %}
+
+{% macro follow_area(user) %}
+    {% if current_user.is_authenticated %}
+        {% if user != current_user %}
+            {% if current_user.is_following(user) %}
+                <form class="inline" method="post"
+                      action="{{ url_for('user.unfollow', username=user.username, next=request.full_path) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-dark btn-sm">取消关注</button>
+                    {% if current_user.is_followed_by(user) %}
+                        <p class="badge badge-light">已互相关注</p>
+                    {% endif %}
+                </form>
+            {% else %}
+                <form class="inline" method="post"
+                      action="{{ url_for('user.follow', username=user.username, next=request.full_path) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-primary btn-sm">关注</button>
+                    {% if current_user.is_followed_by(user) %}
+                        <p class="badge badge-light">已关注你</p>
+                    {% endif %}
+                </form>
+            {% endif %}
+        {% endif %}
+    {% else %}
+        <form class="inline" method="post"
+              action="{{ url_for('user.follow', username=user.username) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-primary btn-sm">关注</button>
+        </form>
+    {% endif %}
+{% endmacro %}

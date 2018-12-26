@@ -1,0 +1,106 @@
+{% extends 'admin/index.html' %}
+{% from 'bootstrap/pagination.html' import render_pagination %}
+
+{% block title %}Manage blogs{% endblock %}
+
+{% block content %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            {{ render_breadcrumb_item('admin.index', '管理首页') }}
+            {{ render_breadcrumb_item('admin.manage_blog', '博文管理') }}
+        </ol>
+    </nav>
+    <div class="page-header">
+        <h1>博文列表
+            <small class="text-muted">{{ pagination.total }}</small>
+            <span class="dropdown">
+                <button class="btn btn-secondary btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                    排序方式 {{ order_rule }} <span class="oi oi-elevator"></span>
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    {% if order_rule == 'flag' %}
+                        <a class="dropdown-item" href="{{ url_for('.manage_blog', order='time', blogtype=blogtype) }}">按时间排序</a>
+                    {% else %}
+                        <a class="dropdown-item" href="{{ url_for('.manage_blog', order='flag', blogtype=blogtype) }}">举报数排序</a>
+                    {% endif %}
+                </div>
+            </span>
+            <span class="dropdown">
+                <button class="btn btn-secondary btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                    类型 {{ blogtype }} <span class="oi oi-elevator"></span>
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    {% if blogtype == 'post' %}
+                        <a class="dropdown-item" href="{{ url_for('.manage_blog', order=order_rule, blogtype='all') }}">所有</a>
+                        <a class="dropdown-item" href="{{ url_for('.manage_blog', order=order_rule, blogtype='photo') }}">图片</a>
+                    {% elif blogtype == 'photo' %}
+                        <a class="dropdown-item" href="{{ url_for('.manage_blog', order=order_rule, blogtype='post') }}">文章</a>
+                        <a class="dropdown-item" href="{{ url_for('.manage_blog', order=order_rule, blogtype='all') }}">所有</a>
+                    {% else %}
+                        <a class="dropdown-item" href="{{ url_for('.manage_blog', order=order_rule, blogtype='photo') }}">图片</a>
+                        <a class="dropdown-item" href="{{ url_for('.manage_blog', order=order_rule, blogtype='post') }}">文章</a>
+                    {% endif %}
+                </div>
+            </span>
+        </h1>
+    </div>
+    {% if blogs %}
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>Image</th>
+                <th>描述</th>
+                <th>标签</th>
+                <th>用户</th>
+                <th>举报</th>
+                <th>日期</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            {% for blog in blogs %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('blog.show_photo', blog_id=blog.id) }}">
+                            <img src="{{ url_for('main.get_image', filename=blog.filename_s) }}" width="250">
+                        </a>
+                    </td>
+                    <td>{{ blog.description }}</td>
+                    <td>
+                        {% if blog.tags %}
+                            {% for tag in blog.tags %}
+                                <form class="inline" method="post"
+                                      action="{{ url_for('admin.delete_tag', tag_id=tag.id, next=request.full_path) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn badge badge-danger mb-1"
+                                            onclick="return confirm('Are you sure?');">
+                                        {{ tag.name }} <span class="oi oi-trash" aria-hidden="true">
+                                </span>
+                                    </button>
+                                </form>
+                            {% endfor %}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('user.index', username=blog.user.username) }}">{{ blog.user.name }}</a>
+                    </td>
+                    <td>{{ blog.flag }}</td>
+                    <td>{{ moment(blog.timestamp).format('LL') }}</td>
+                    <td>
+                        <form class="inline" method="post"
+                              action="{{ url_for('blog.delete_blog', blog_id=blog.id, next=request.full_path) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Are you sure?');">删除
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+        <div class="page-footer">{{ render_pagination(pagination) }}</div>
+    {% else %}
+        <div class="tip"><h5>还没有博文</h5></div>
+    {% endif %}
+{% endblock %}

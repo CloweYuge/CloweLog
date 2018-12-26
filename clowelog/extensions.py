@@ -5,6 +5,10 @@ from flask_ckeditor import CKEditor
 from flask_moment import Moment
 from flask_login import LoginManager, AnonymousUserMixin
 from flask_wtf import CSRFProtect
+from flask_dropzone import Dropzone
+from flask_avatars import Avatars
+from flask_migrate import Migrate
+from flask_whooshee import Whooshee
 
 bootstrap = Bootstrap()
 db = SQLAlchemy()
@@ -13,10 +17,17 @@ ckeditor = CKEditor()
 mail = Mail()
 login_manager = LoginManager()
 csrf = CSRFProtect()
+dropzone = Dropzone()
+avatars = Avatars()
+migrate = Migrate()
+whooshee = Whooshee()
 
 login_manager.login_view = 'auth.login'
 login_manager.login_message_category = 'warning'
-login_manager.login_message = '请先登录！(Please log in to access this page.)'
+login_manager.refresh_view = 'auth.re_authenticate'
+login_manager.needs_refresh_message = u'为了保护你的账户安全，请重新登录认证'
+login_manager.needs_refresh_message_category = 'warning'
+login_manager.login_message = '请先登录'
 
 
 @login_manager.user_loader

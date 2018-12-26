@@ -1,90 +1,99 @@
 {% from 'bootstrap/nav.html' import render_nav_item %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     {% block head %}
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <title>{% block title %}{% endblock title %} - {{ admin_user.blog_title|default(admin.blog_title) }}</title>
+        <title>{% block title %}{% endblock title %} - CloweLog</title>
         <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-        <link rel="stylesheet"
+        {% block styles %}
+            <link rel="stylesheet"
               href="{{ url_for('static', filename='css/%s.min.css' % request.cookies.get('theme', 'black_swan')) }}"
               type="text/css">
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" type="text/css">
+            <link rel="stylesheet" href="{{ url_for('static', filename='css/round_icon.css') }}" type="text/css">
+            <link rel="stylesheet" href="{{ url_for('static', filename='open-iconic/font/css/open-iconic-bootstrap.css') }}">
+            <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" type="text/css">
+        {% endblock styles %}
     {% endblock head %}
 </head>
 <body>
 {% block nav %}
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('blog.index') }}">{{ admin.blog_title }}</a>
+            <a class="navbar-brand" href="{{ url_for('blog.index') }}">CloweLog</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01"
                     aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarColor01">
-                <ul class="navbar-nav mr-auto">
-                    {% if current_user.is_authenticated and admin_user %}
-                        <a class="nav-link" href="{{ url_for('user.index', user_id=current_user.id) }}">主页</a>
-
-                    {% endif %}
+                <div class="navbar-nav mr-auto">
+                    <a class="nav-item nav-link" href="{{ url_for('blog.explore', username=current_user.username) }}">发现</a>
                     {{ render_nav_item('blog.about', '关于') }}
-                </ul>
-
-                <ul class="nav navbar-nav navbar-right">
                     {% if current_user.is_authenticated %}
-                        <li class="nav-item dropdown">
-                            <a class=" nav-link dropdown-toggle" data-toggle="dropdown" role="button"
-                               aria-haspopup="true" aria-expanded="false">
-                                {{ current_user.name }}<span class="caret"></span>
-                            </a>
-                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item" href="#">关注-开发中</a>
-                                <a class="dropdown-item" href="#">好友-开发中</a>
-                                <a class="dropdown-item" href="#">链接-开发中</a>
-                            </div>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button"
-                               aria-haspopup="true"
-                               aria-expanded="false">
-                                发布 <span class="caret"></span>
-                            </a>
-                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item" href="{{ url_for('admin.new_post') }}">文章</a>
-                                <a class="dropdown-item" href="{{ url_for('admin.new_category') }}">分类</a>
-                                <a class="dropdown-item" href="{{ url_for('admin.new_link') }}">链接</a>
-                            </div>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button"
-                               aria-haspopup="true"
-                               aria-expanded="false">
-                                管理 <span class="caret"></span>
-                                {% if unread_comments or remind_count %}
-                                    <span class="badge badge-success">new</span>
-                                {% endif %}
-                            </a>
-                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            {% if current_user.admin_root %}
-                                <a class="dropdown-item" href="{{ url_for('admin.manage_user') }}">用户</a>
-                                {% endif %}
-                                <a class="dropdown-item" href="{{ url_for('admin.manage_post') }}">文章</a>
-                                <a class="dropdown-item" href="{{ url_for('admin.manage_category') }}">分类</a>
-                                <a class="dropdown-item" href="{{ url_for('admin.manage_comment') }}">
-                                    评论
-                                    {% if unread_comments %}
-                                        <span class="badge badge-success">{{ unread_comments }}</span>
-                                    {% endif %}
-                                </a>
-                                <a class="dropdown-item" href="{{ url_for('admin.manage_link') }}">链接</a>
-                            </div>
-                        </li>
-                        {% if admin_user %}
-                            {{ render_nav_item('admin.settings', 'Settings') }}
-                        {% endif %}
+                        <form class="form-inline my-2 my-lg-0" action="{{ url_for('main.search') }}">
+                            <input type="text" name="q" class="form-control mr-sm-1" placeholder="输入关键词"
+                                   required>
+                            <button class="btn btn-light my-2 my-sm-0" type="submit">
+                                <span class="oi oi-magnifying-glass"></span>
+                            </button>
+                        </form>
                     {% endif %}
-                </ul>
+                </div>
+
+                <div class="navbar-nav  ml-auto">
+                {% if current_user.is_authenticated %}
+                    <div class="dropdown nav-item">
+                        <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button"
+                       aria-expanded="false">
+                            <img class="avatar-xs"
+                                 src="{{ url_for('main.get_avatar', filename=current_user.avatar_s) }}">
+                            <span class="caret"></span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right" role="menu">
+                            <h6 class="dropdown-header">Logged in as {{ current_user.username }}</h6>
+                            <a class="dropdown-item" href="{{ url_for('user.index', username=current_user.username) }}">
+                                <span class="oi oi-person"></span> 个人
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{{ url_for('user.edit_profile') }}">
+                                <span class="oi oi-cog"></span> 设置
+                            </a>
+                            {% if current_user.can('MODERATE') %}
+                                <a class="dropdown-item" href="{{ url_for('admin.index') }}">
+                                    <span class="oi oi-dashboard"></span> 仪表盘
+                                </a>
+                            {% endif %}
+                            <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                <span class="oi oi-power-standby"></span> 退出
+                            </a>
+                        </div>
+                    </div>
+                    <a class="nav-item nav-link" href="{{ url_for('user.show_notifications', filter='unread') }}">
+                    <span class="oi oi-bell"></span>&nbsp;&nbsp;
+                    <span id="notification-badge"
+                          class="{% if notification_count == 0 %}hide{% endif %} badge badge-danger badge-notification"
+                          data-href="{{ url_for('ajax.notifications_count') }}">{{ notification_count }}</span>
+                    </a>
+                    <a class="nav-item nav-link" href="{{ url_for('main.upload', stacie='one') }}" title="Upload">
+                        <span class="oi oi-cloud-upload"></span>&nbsp;&nbsp;
+                    </a>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button"
+                           aria-haspopup="true"
+                           aria-expanded="false">
+                            发布 <span class="caret"></span>
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            {% if current_user.can('UPPOST') %}
+                            <a class="dropdown-item" href="{{ url_for('main.new_post') }}">文章</a>
+                            {% endif %}
+                            <a class="dropdown-item" href="{{ url_for('main.upload', stacie='one') }}">图片</a>
+                        </div>
+                    </div>
+                {% endif %}
+                </div>
             </div>
         </div>
     </nav>
@@ -108,7 +117,7 @@
             <p class="float-right">
                 <small>
                     {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('auth.logout', next=request.full_path) }}">登出Logout</a>
+                        <a href="{{ url_for('auth.logout') }}">登出Logout</a>
                     {% else %}
                         <a href="{{ url_for('auth.join', next=request.full_path) }}">注册</a> -
                         <a href="{{ url_for('auth.login', next=request.full_path) }}">登录Login</a>
@@ -118,14 +127,24 @@
         </footer>
     {% endblock footer %}
 </main>
+<div id="toast"></div>
 
 {% block scripts %}
-    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.2.1.slim.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/script.js') }}"></script>
     {{ moment.include_moment(local_js=url_for('static', filename='js/moment-with-locales.min.js')) }}
     {{ moment.locale(auto_detect=True) }}
+    <script type="text/javascript">
+        var csrf_token = "{{ csrf_token() }}";
+        {% if current_user.is_authenticated %}
+            var is_authenticated = true;
+        {% else %}
+            var is_authenticated = false;
+        {% endif %}
+    </script>
 {% endblock %}
 </body>
 </html>
