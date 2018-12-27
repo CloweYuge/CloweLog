@@ -55,20 +55,18 @@ def new_post():
     return render_template('blog/new_post.html', form=form)
 
 
-@main_bp.route('/post/<int:post_id>/edit', methods=['GET', 'POST'])
+@main_bp.route('/post/<int:blog_id>/edit', methods=['GET', 'POST'])
 @login_required
-def edit_post(post_id):
+def edit_post(blog_id):
     form = PostForm()
-    post = Blog.query.get_or_404(post_id)
+    post = Blog.query.get_or_404(blog_id)
     if form.validate_on_submit():
         post.description = form.title.data
-        text = Text(body=form.body.data)
-        db.session.add(text)
-        post.text = text
+        post.text.body = form.body.data
         post.category = Category.query.get(form.category.data)
         db.session.commit()
-        flash('文章已发布', 'success')
-        return redirect(url_for('blog.show_post', post_id=post.id))
+        flash('文章已修改', 'success')
+        return redirect(url_for('blog.show_post', blog_id=post.id))
     form.title.data = post.description
     form.body.data = post.text.body
     form.category.data = post.category_id
@@ -143,7 +141,6 @@ def edit_photos(blog_id):
     return redirect(url_for('blog.show_photo', blog_id=blog_id))
 
 
-
 @main_bp.route('/collect/<int:blog_id>', methods=['POST'])
 @login_required
 @confirm_required
@@ -157,7 +154,7 @@ def collect(blog_id):
     current_user.collect(blog)
     flash('已收藏该贴.', 'success')
     if current_user != blog.user and blog.user.receive_collect_notification:
-        push_collect_notification(collector=current_user, photo_id=blog_id, receiver=blog.user)
+        push_collect_notification(collector=current_user, blog_id=blog_id, receiver=blog.user, type=blog.type)
     return redirect(url_for('blog.show_photo', blog_id=blog_id))
 
 

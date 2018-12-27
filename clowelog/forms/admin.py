@@ -10,7 +10,7 @@ class EditProfileAdminForm(EditProfileForm):
     email = StringField('Email', validators=[DataRequired(), Length(1, 254), Email()])
     role = SelectField('权限', coerce=int)
     active = BooleanField('未封禁')
-    confirmed = BooleanField('未激活')
+    confirmed = BooleanField('已激活')
     submit = SubmitField()
 
     def __init__(self, user, *args, **kwargs):
@@ -20,7 +20,7 @@ class EditProfileAdminForm(EditProfileForm):
         self.user = user
 
     def validate_username(self, field):
-        if field.data != self.user.username and User.query.filter_by(email=field.data).first():
+        if field.data != self.user.username and User.query.filter_by(username=field.data).first():
             raise ValidationError('该用户名已被使用')
 
     def validate_email(self, field):

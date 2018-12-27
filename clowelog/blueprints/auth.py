@@ -1,6 +1,8 @@
 from flask import Blueprint, url_for, redirect, flash, render_template
 from flask_login import login_user, current_user, login_required, logout_user, login_fresh, confirm_login
 from clowelog.extensions import db
+from clowelog.settings import Operations
+from clowelog.emails import send_confirm_email
 from clowelog.models import User
 from clowelog.forms.auth import LoginForm, JoinForm
 from clowelog.utils import redirect_back, generate_token, validate_token
@@ -52,7 +54,7 @@ def join():
         email = form.email.data.lower()
         username = form.username.data
         password = form.password.data
-        user = User(name=name, email=email, username=username)
+        user = User(name=name, email=email, confirmed=True, username=username)
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
@@ -69,3 +71,15 @@ def logout():
     logout_user()
     flash('已退出登录.', 'info')
     return redirect(url_for('auth.login'))
+
+
+@auth_bp.route('/resend-confirm-email')
+@login_required
+def resend_confirm_email():
+    if current_user.confirmed:
+        return redirect(url_for('main.index'))
+
+    token = generate_token(user=current_user, operation=Operations.CONFIRM)
+    send_confirm_email(user=current_user, token=token)
+    flash('New email sent, check your inbox.', 'info')
+    return redirect(url_for('main.index'))

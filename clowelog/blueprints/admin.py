@@ -1,8 +1,7 @@
 from flask import Blueprint, render_template, request, current_app, flash, redirect, url_for
 from flask_login import login_required, current_user
-from clowelog.models import Blog, Category, Comment, Link, User, Text, Role, Tag
+from clowelog.models import Blog, Category, Comment, User, Role, Tag
 from clowelog.forms.admin import EditProfileAdminForm
-from clowelog.forms.blog import PostForm
 from clowelog.extensions import db
 from clowelog.decorators import permission_required, admin_required
 from clowelog.utils import redirect_back
@@ -64,15 +63,6 @@ def manage_post():
     return render_template('admin/manage_post.html', pagination=pagination, posts=posts)
 
 
-@admin_bp.route('/post/<int:post_id>/delete', methods=['POST'])
-def delete_post(post_id):
-    post = Blog.query.get_or_404(post_id)
-    db.session.delete(post)
-    db.session.commit()
-    flash('文章已删除！', 'success')
-    return redirect_back()
-
-
 @admin_bp.route('/post/<int:blog_id>/set-comment', methods=['POST'])
 def set_comment(blog_id):
     post = Blog.query.get_or_404(blog_id)
@@ -92,15 +82,6 @@ def approve_comment(comment_id):
     comment.reviewed = True
     db.session.commit()
     flash('评论已允许', 'success')
-    return redirect_back()
-
-
-@admin_bp.route('/comment/<int:comment_id>/delete', methods=['POST'])
-def delete_comment(comment_id):
-    comment = Comment.query.get_or_404(comment_id)
-    db.session.delete(comment)
-    db.session.commit()
-    flash('评论已删除', 'success')
     return redirect_back()
 
 

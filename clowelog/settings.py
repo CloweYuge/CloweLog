@@ -41,7 +41,7 @@ class BaseConfig(object):           # 公共的配置，在任何环境都有效
     MAIL_USE_SSL = True
     MAIL_USERNAME = os.getenv('MAIL_USERNAME')              # 邮箱
     MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = ('Bluelog Admin', MAIL_USERNAME)
+    MAIL_DEFAULT_SENDER = ('CloweLog Admin', MAIL_USERNAME)
     CLOWELOG_MAIL_SUBJECT_PREFIX = os.getenv('CLOWELOG_EMAIL')
 
     CLOWELOG_BLOG_PER_PAGE = 9
@@ -96,7 +96,7 @@ class BaseConfig(object):           # 公共的配置，在任何环境都有效
 
 class DevelopmentConfig(BaseConfig):
     # SQLALCHEMY_DATABASE_URI = prefix + os.path.join(basedir, 'data-dev.db')
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:@localhost:3306/clowelog?charset=utf8'
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:mysql123@localhost:3306/clowelog?charset=utf8'
 
 
 class TestingConfig(BaseConfig):
@@ -107,11 +107,12 @@ class TestingConfig(BaseConfig):
 
 class ProductionConfig(BaseConfig):     # 生产环境的配置
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', prefix + os.path.join(basedir, 'data.db'))    # 生产环境的数据库
-    # ADMIN_ROOT = {
-    #     'username': '',
-    #     'password': '',
-    #     'name': ''
-    # }
+    # 生产环境的管理员帐户从环境变量中读取，没找到就用开发环境的默认管理员吧
+    ADMIN_ROOT = {
+        'username': os.getenv('USERNAME_ROOT', 'admin-root'),
+        'password': os.getenv('PASSWORD_ROOT', 'helloflask'),
+        'name': os.getenv('NAME_ROOT', 'clowe')
+    }
 
 
 config = {

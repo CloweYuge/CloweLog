@@ -54,7 +54,7 @@
                                 {% endif %}
                                     {% if current_user == comment.user or current_user == blog.user or current_user.can('MODERATE') %}
                                         <a class="dropdown-item" data-toggle="modal" href="#!"
-                                           data-href="{{ url_for('admin.delete_comment', comment_id=comment.id) }}"
+                                           data-href="{{ url_for('blog.delete_comment', comment_id=comment.id) }}"
                                            data-target="#confirm-delete">
                                         <span class="oi oi-trash" aria-hidden="true"></span> 删除
                                       </a>
@@ -95,7 +95,7 @@
             {% if current_user.can('COMMENT') %}
                 {% if request.args.get('reply') %}
                     <div class="alert alert-dark">
-                        回复 {{ request.args.get('author') }}:
+                        回复 {{ request.args.get('user') }}:
                         <a class="float-right" href="{{ url_for('.show_photo', blog_id=blog.id) }}">取消</a>
                     </div>
                 {% endif %}
@@ -105,7 +105,7 @@
                              src="{{ url_for('main.get_avatar', filename=current_user.avatar_m) }}">
                     </div>
                     <div class="comment-form" id="comment-form">
-                        {{ render_form(comment_form, action=url_for('.new_comment', blog_id=blog.id, page=pagination.pages),
+                        {{ render_form(comment_form, action=url_for('blog.new_comment', blog_id=blog.id, page=pagination.pages),
                         extra_classes="text-right") }}
                     </div>
                 </div>

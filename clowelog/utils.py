@@ -95,6 +95,7 @@ def validate_token(user, token, operation, new_password=None):
     db.session.commit()
     return True
 
+
 def flash_errors(form):
     for field, errors in form.errors.items():
         for error in errors:

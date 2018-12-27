@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
-{% from 'bootstrap/form.html' import render_form, render_field %}
 {% from 'bootstrap/pagination.html' import render_pagination %}
+{% from 'bootstrap/form.html' import render_form, render_field %}
 
 {% block title %}{{ blog.description }}{% endblock %}
 
@@ -12,11 +12,11 @@
             </small>
             <span class="float-right">
         {% if current_user.is_authenticated and blog.user == current_user %}
-            <a class="btn btn-info btn-sm" href="{{ url_for('main.edit_post', post_id=blog.id) }}">修改</a>
+            <a class="btn btn-info btn-sm" href="{{ url_for('main.edit_post', blog_id=blog.id) }}">修改</a>
             <form class="inline" method="post"
-                  action="{{ url_for('admin.delete_post', post_id=blog.id, next=url_for('blog.index')) }}">
+                  action="{{ url_for('blog.delete_blog', blog_id=blog.id, next=url_for('blog.index')) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?');">删除
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('你确定要这样?');">删除
                 </button>
             </form>
         {% endif %}
@@ -60,4 +60,29 @@
             {% include "blog/_post_sidebar.html" %}
         </div>
     </div>
+    <!-- delete confirm modal -->
+    {% if current_user.is_authenticated %}
+        <div class="modal fade" id="confirm-delete" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirmModalLabel">删除确认！</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>你希望删除该内容吗？</p>
+                    </div>
+                    <div class="modal-footer">
+                        <form class="delete-form" action="" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                            <button class="btn btn-danger btn-confirm" type="submit">删除</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 {% endblock %}

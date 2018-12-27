@@ -151,23 +151,23 @@ def register_commands(app):
 
         Role.init_role()
 
+        category = Category.query.first()
+        if category is None:
+            click.echo('生成默认分类......')
+            category = Category(name='默认')
+            db.session.add(category)
+
         click.echo('新的超级无敌至高管理员诞生了')
         user_root = User(
             username=username_,
             name=name_,
             email='121231231@qq.com',
-            confirmed=False,
+            confirmed=True,
             bio='我是管理员哈哈哈哈',
             site='http://myclowe.top',
         )
         user_root.set_password(password_)
         db.session.add(user_root)
 
-        category = Category.query.first()
-        if category is None:
-            click.echo('生成默认分类......')
-            category = Category(name='默认')
-            category.user = User.query.all()
-            db.session.add(category)
         db.session.commit()
         click.echo('完成Done.')

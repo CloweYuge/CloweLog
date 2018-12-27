@@ -12,19 +12,29 @@ def push_follow_notification(follower, receiver):
     db.session.commit()
 
 
-def push_comment_notification(blog_id, receiver, page=1):
-    message = '<a href="%s#comments">分享</a> 有了新的评论/回复.' % \
-              (url_for('blog.show_photo', blog_id=blog_id, page=page))
+def push_comment_notification(blog_id, receiver, page=1, type=2):
+    if type == 1:
+        message = '<a href="%s#comments">分享</a> 有了新的评论/回复.' % \
+                  (url_for('blog.show_post', blog_id=blog_id, page=page))
+    else:
+        message = '<a href="%s#comments">分享</a> 有了新的评论/回复.' % \
+                  (url_for('blog.show_photo', blog_id=blog_id, page=page))
     notification = Notification(message=message, receiver=receiver)
     db.session.add(notification)
     db.session.commit()
 
 
-def push_collect_notification(collector, photo_id, receiver):
-    message = '用户 <a href="%s">%s</a> 收藏 <a href="%s">photo</a>' % \
-              (url_for('user.index', username=collector.username),
-               collector.username,
-               url_for('blog.show_photo', photo_id=photo_id))
+def push_collect_notification(collector, blog_id, receiver, type=2):
+    if type == 1:
+        message = '用户 <a href="%s">%s</a> 收藏 <a href="%s">photo</a>' % \
+                  (url_for('user.index', username=collector.username),
+                   collector.username,
+                   url_for('blog.show_post', blog_id=blog_id))
+    else:
+        message = '用户 <a href="%s">%s</a> 收藏 <a href="%s">photo</a>' % \
+                  (url_for('user.index', username=collector.username),
+                   collector.username,
+                   url_for('blog.show_photo', blog_id=blog_id))
     notification = Notification(message=message, receiver=receiver)
     db.session.add(notification)
     db.session.commit()

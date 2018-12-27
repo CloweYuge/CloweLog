@@ -58,7 +58,7 @@ def show_category(category_id):
 def show_post(blog_id):
     blog = Blog.query.get_or_404(blog_id)
     blog_user = blog.user
-    page = request.args.get('page', 1, type=int)
+    page = request.args.get('page', default=1, type=int)
     per_page = current_app.config['CLOWELOG_COMMENT_PER_PAGE']
     pagination = Comment.query.with_parent(blog).order_by(Comment.timestamp.desc()).paginate(page, per_page=per_page)
     comments = pagination.items
@@ -74,7 +74,7 @@ def show_post(blog_id):
 @blog_bp.route('/photo/<int:blog_id>')
 def show_photo(blog_id):
     blog = Blog.query.get_or_404(blog_id)
-    page = request.args.get('page', 1, type=int)
+    page = request.args.get('page', default=1, type=int)
     per_page = current_app.config['CLOWELOG_COMMENT_PER_PAGE']
     pagination = Comment.query.with_parent(blog).order_by(Comment.timestamp.asc()).paginate(page, per_page)
     comments = pagination.items
@@ -192,9 +192,9 @@ def report_comment(comment_id):
     db.session.commit()
     flash('该评论已被举报.', 'success')
     if comment.blog.type == 2:
-        return redirect(url_for('.show_photo', blog_id=comment.photo_id))
+        return redirect(url_for('.show_photo', blog_id=comment.blog_id))
     elif comment.blog.type == 1:
-        return redirect(url_for('.show_post', blog_id=comment.photo_id))
+        return redirect(url_for('.show_post', blog_id=comment.blog_id))
 
 
 @blog_bp.route('/report/blog/<int:blog_id>', methods=['POST'])
@@ -218,6 +218,19 @@ def reply_comment(comment_id):
                             blog_id=comment.blog_id, reply=comment_id, author=comment.user.name) + '#comment-form')
 
 
+@blog_bp.route('/delete/comment/<int:comment_id>', methods=['POST'])
+@login_required
+def delete_comment(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    if current_user != comment.user and current_user != comment.blog.user \
+            and not current_user.can('MODERATE'):
+        abort(403)
+    db.session.delete(comment)
+    db.session.commit()
+    flash('评论已删除', 'info')
+    return redirect_back()
+
+
 @blog_bp.route('/change-theme/<theme_name>')
 def change_theme(theme_name):
     if theme_name not in current_app.config['BLUELOG_THEMES'].keys():
@@ -232,7 +245,9 @@ def change_theme(theme_name):
 @permission_required('COMMENT')
 def new_comment(blog_id):
     blog = Blog.query.get_or_404(blog_id)
-    page = request.args.get('page', 1, type=int)
+    page = request.args.get('page', default=1, type=int)
+    if page == 0:
+        page = 1
     form = CommentForm()
     if form.validate_on_submit():
         body = form.body.data
@@ -243,13 +258,13 @@ def new_comment(blog_id):
         if replied_id:
             comment.replied = Comment.query.get_or_404(replied_id)
             if comment.replied.user.receive_comment_notification:
-                push_comment_notification(blog_id=blog.id, receiver=comment.replied.user)
+                push_comment_notification(blog_id=blog.id, receiver=comment.replied.user, type=blog.type)
         db.session.add(comment)
         db.session.commit()
         flash('评论已推送.', 'success')
 
         if current_user != blog.user and blog.user.receive_comment_notification:
-            push_comment_notification(blog_id, receiver=blog.user, page=page)
+            push_comment_notification(blog_id, receiver=blog.user, page=page, type=blog.type)
 
     flash_errors(form)
     if blog.type == 2:

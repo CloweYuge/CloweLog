@@ -100,7 +100,7 @@ class User(db.Model, UserMixin):
     avatar_raw = db.Column(db.String(64))               # 用户上传
 
     # blog_open = db.Column(db.Boolean, default=False)            # 博文开通状态
-    confirmed = db.Column(db.Boolean, default=True)        # 确认注册状态
+    confirmed = db.Column(db.Boolean, default=False)        # 确认注册状态
     locked = db.Column(db.Boolean, default=False)           # 锁定状态，只能关注和收藏，无法发布信息
     active = db.Column(db.Boolean, default=True)            # 封禁状态，不允许登陆
 
@@ -131,6 +131,7 @@ class User(db.Model, UserMixin):
         self.generate_avatar()
         self.follow(self)  # follow self
         self.set_role()
+        self.set_cateary()
 
     def set_cateary(self):
         if self.categorys is None:
