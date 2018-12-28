@@ -7,7 +7,7 @@ from clowelog.models import Category
 
 class DescriptionForm(FlaskForm):
     description = TextAreaField('描述', validators=[Optional(), Length(0, 500)])
-    submit = SubmitField()
+    submit = SubmitField('提交')
 
 
 class TagForm(FlaskForm):
@@ -22,7 +22,7 @@ class CommentForm(FlaskForm):
 
 class CategoryForm(FlaskForm):
     category = StringField('添加分类', validators=[Optional(), Length(0, 20)])
-    submit = SubmitField()
+    submit = SubmitField('提交')
 
 
 class PhotosForm(FlaskForm):
@@ -40,7 +40,7 @@ class PostForm(FlaskForm):          # 文章表单
     def __init__(self, *args, **kwargs):
         super(PostForm, self).__init__(*args, **kwargs)
         self.category.choices = [(category.id, category.name)
-                                 for category in Category.query.order_by(Category.name).all()]
+                                 for category in Category.query.with_parent(kwargs['user']).order_by(Category.name).all()]
 
 
 class LinkForm(FlaskForm):              # 添加链接表单

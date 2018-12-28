@@ -33,6 +33,9 @@
                         {% if comment.user == blog.user %}
                             <span class="badge badge-light">主人</span>
                         {% endif %}
+                        {% if comment.user.can('UPPOST') %}
+                            <span class="badge badge-light">Po主</span>
+                        {% endif %}
                         <small data-toggle="tooltip" data-placement="top" data-timestamp="{{ comment.timestamp }}"
                                data-delay="500">
                             {{ moment(comment.timestamp).fromNow(refresh=True) }}
@@ -71,12 +74,20 @@
                             </span>
                         {% endif %}
                     </h6>
+                    {% if comment.replied %}
+                        <p class="alert alert-dark reply-body" style="margin-top: 20px">
+                            <a href="{{ url_for('user.index', username=comment.replied.user.username) }}">
+                                <img class="rounded img-fluid avatar-s profile-popover"
+                                     data-href="{{ url_for('ajax.get_profile', user_id=comment.replied.user.id) }}"
+                                     src="{{ url_for('main.get_avatar', filename=comment.replied.user.avatar_m) }}">
+                            </a>
+                            <a href="{{ url_for('user.index', username=comment.replied.user.username) }}">
+                                {{ comment.replied.user.name }}
+                            </a>
+                            :{{ comment.replied.body }}
+                        </p>
+                    {%- endif -%}
                     <p>
-                        {% if comment.replied %}
-                            回复
-                            <a href="{{ url_for('user.index', username=comment.replied.user.username) }}">{{ comment.replied.user.name }}</a>
-                            :
-                        {%- endif -%}
                         {{ comment.body }}
                     </p>
                 </div>
@@ -105,7 +116,7 @@
                              src="{{ url_for('main.get_avatar', filename=current_user.avatar_m) }}">
                     </div>
                     <div class="comment-form" id="comment-form">
-                        {{ render_form(comment_form, action=url_for('blog.new_comment', blog_id=blog.id, page=pagination.pages),
+                        {{ render_form(comment_form, action=url_for('blog.new_comment', blog_id=blog.id, reply=request.args.get('reply'), page=pagination.pages),
                         extra_classes="text-right") }}
                     </div>
                 </div>

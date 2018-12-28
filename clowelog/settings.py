@@ -66,8 +66,7 @@ class BaseConfig(object):           # 公共的配置，在任何环境都有效
         'name': 'clowe'
     }
     CLOWELOG_UPLOAD_PATH = os.path.join(basedir, 'uploads')
-    CLOWELOG_PHOTO_SIZE = {'small': 400,
-                         'medium': 800}
+    CLOWELOG_PHOTO_SIZE = {'small': 400, 'medium': 800}
     CLOWELOG_PHOTO_SUFFIX = {
         CLOWELOG_PHOTO_SIZE['small']: '_s',  # thumbnail
         CLOWELOG_PHOTO_SIZE['medium']: '_m',  # display

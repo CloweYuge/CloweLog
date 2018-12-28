@@ -39,7 +39,7 @@ def search():
 @main_bp.route('/post/new', methods=['GET', 'POST'])
 @permission_required('UPPOST')
 def new_post():
-    form = PostForm()
+    form = PostForm(user=current_user)
     user = User.query.get(current_user.id)
     if form.validate_on_submit():
         description = form.title.data
@@ -58,7 +58,7 @@ def new_post():
 @main_bp.route('/post/<int:blog_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_post(blog_id):
-    form = PostForm()
+    form = PostForm(user=current_user)
     post = Blog.query.get_or_404(blog_id)
     if form.validate_on_submit():
         post.description = form.title.data

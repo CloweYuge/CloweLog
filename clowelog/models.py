@@ -134,9 +134,9 @@ class User(db.Model, UserMixin):
         self.set_cateary()
 
     def set_cateary(self):
-        if self.categorys is None:
-            self.categorys.append(Category.query.first())
-            db.session.commit()
+        category = Category.query.filter_by(id=1).first()
+        category.user.append(self)
+        db.session.commit()
 
     def generate_avatar(self):
         avatar = Identicon()
@@ -260,10 +260,12 @@ class Comment(db.Model):
     user = db.relationship('User', back_populates='comments', foreign_keys=[user_id])
 
     body = db.Column(db.Text)
-    flag = db.Column(db.SmallInteger,default=0)
-    from_admin = db.Column(db.Boolean, default=False)
-    reviewed = db.Column(db.Boolean, default=False)
-    remind = db.Column(db.Boolean, default=False)
+    flag = db.Column(db.SmallInteger, default=0)       # 举报
+
+    from_admin = db.Column(db.Boolean, default=False)   # 来自管理
+    reviewed = db.Column(db.Boolean, default=False)     # 提醒
+    remind = db.Column(db.Boolean, default=False)       # 已读
+
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)         # 设置index参数表示将以此字段建立索引
 
     blog_id = db.Column(db.Integer, db.ForeignKey('blog.id'))  # 设置外键指向admin的id

@@ -15,8 +15,11 @@
     <div class="card mb-3 w-100 bg-light">
         <div class="card-body">
             <h5>
+            {% if current_user != user %}
+                {{ user.name }}的
+            {% endif %}
                 分类
-                {% if current_user == user %}
+                {% if current_user == user and current_user.can('UPPOST') %}
                     <a id="category-btn" href="#!">
                         <small><span class="float-right oi oi-pencil"> 管理分类</span></small>
                     </a>
@@ -35,7 +38,7 @@
                     <hr>
                     {% for category in user.categorys %}
                         <a class="dead-link" href="#!"
-                           data-href="{{ url_for('user.delete_category', user_id=user.id, category_id=category.id) }}"
+                           data-href="{{ url_for('user.delete_category', category_id=category.id) }}"
                            data-toggle="modal" data-target="#confirm-delete" title="Delete category">
                             <span class="badge badge-danger">
                                 {{ category.name }}

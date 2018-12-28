@@ -215,7 +215,7 @@ def report_blog(blog_id):
 def reply_comment(comment_id):
     comment = Comment.query.get_or_404(comment_id)
     return redirect(url_for('.show_post',
-                            blog_id=comment.blog_id, reply=comment_id, author=comment.user.name) + '#comment-form')
+                            blog_id=comment.blog_id, reply=comment_id, user=comment.user.name) + '#comment-form')
 
 
 @blog_bp.route('/delete/comment/<int:comment_id>', methods=['POST'])
@@ -256,6 +256,7 @@ def new_comment(blog_id):
 
         replied_id = request.args.get('reply')
         if replied_id:
+            print(replied_id)
             comment.replied = Comment.query.get_or_404(replied_id)
             if comment.replied.user.receive_comment_notification:
                 push_comment_notification(blog_id=blog.id, receiver=comment.replied.user, type=blog.type)

@@ -301,14 +301,16 @@ def new_category():
     return redirect_back()
 
 
-@user_bp.route('/category/<int:category_id><int:user_id>/delete', methods=['POST'])
-def delete_category(category_id, user_id):
+@user_bp.route('/category/<int:category_id>/delete', methods=['POST'])
+def delete_category(category_id):
     category = Category.query.get_or_404(category_id)
-    user = User.query.get_or_404(user_id)
+    user = User.query.get_or_404(current_user.id)
     if category.id == 1:
         flash('你不能删除掉默认的分类', 'warning')
         return redirect_back()
-    Blog.query.with_parent(user).filter_by(category=category).update({'category': Category.query.get(1)})
+    blogs = Blog.query.with_parent(user).filter_by(category=category)
+    if blogs.count():
+        blogs.update({'category': Category.query.get(1)})
     user.categorys.remove(category)
     db.session.commit()
     flash('分类已删除，该分类下的文章已移动到默认分类下！', 'success')
